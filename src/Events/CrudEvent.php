@@ -4,8 +4,8 @@ namespace LemonCMS\LaravelCrud\Events;
 
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Http\Request;
 use Illuminate\Queue\SerializesModels;
-use LemonCMS\LaravelCrud\Http\Requests\CrudRequest;
 
 class CrudEvent extends AbstractCrudEvent
 {
@@ -41,12 +41,12 @@ class CrudEvent extends AbstractCrudEvent
         return new self($id);
     }
 
-    public static function authorize(CrudRequest $request): bool
+    public static function authorize(Request $request): bool
     {
         return true;
     }
 
-    public static function rules(CrudRequest $request): array
+    public static function rules(Request $request): array
     {
         return [];
     }

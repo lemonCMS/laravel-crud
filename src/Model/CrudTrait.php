@@ -4,50 +4,17 @@ namespace LemonCMS\LaravelCrud\Model;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\RelationNotFoundException;
 use Illuminate\Http\Request;
-use LemonCMS\LaravelCrud\Exceptions\UnauthorizedException;
 
-/**
- * Trait CrudTrait.
- *
- * @property string $userRelation
- * @property string $userIdColumn
- */
 trait CrudTrait
 {
-    public $userRelation;
-
-    public $userIdColumn;
-
-    public function __construct()
-    {
-        if (! isset($this->userRelation)) {
-            if (method_exists($this, 'users')) {
-                $this->userRelation = 'users';
-            } elseif (method_exists($this, 'user')) {
-                $this->userRelation = 'user';
-            }
-        }
-
-        if (! isset($this->userIdColumn)) {
-            $this->userIdColumn = 'id';
-        }
-    }
-
     /**
-     * @param bool $privateAccess
+     * @param Builder $query
+     * @param Request $request
+     * @param $withQuery
      */
-    public function scopePaginatedResources(Builder $query, Request $request, $privateAccess = false): void
+    public function scopePaginatedResources(Builder $query, Request $request, $withQuery): void
     {
-        if ($privateAccess) {
-            $this->checkRelation();
-
-            $query->whereHas($this->userRelation, function (Builder $hasQuery) use ($request) {
-                $hasQuery->where($this->userIdColumn, $request->user()[$this->userIdColumn]);
-            });
-        }
-
         $this->runIncludes($query, $request->get('include', null));
         $this->runSearch($query, $request->all());
         $this->runSort(
@@ -55,33 +22,17 @@ trait CrudTrait
             $request->get('order_field', null),
             $request->get('order_dir', null)
         );
+        $withQuery($query);
 
         \Response::json($query->paginate($this->perPage))
-            ->setStatusCode(200)->send();
+            ->setStatusCode(200)
+            ->send();
     }
 
     /**
-     * Shallow check if the relation to the User model
-     * does exist on the current model.
-     *
-     * TODO: follow the dot notation path and check if
-     *  all exist in all models.
-     */
-    private function checkRelation()
-    {
-        [$relation] = explode('.', $this->userRelation);
-
-        if (! method_exists($this, $relation)) {
-            throw RelationNotFoundException::make($this->getModel(), $relation);
-        }
-    }
-
-    /**
-     * Load relations.
-     *
-     * protected $includes = [
-     *  'users'
-     * ];
+     * @param Builder $query
+     * @param string|null $includes
+     * @return Builder
      */
     private function runIncludes(Builder $query, string $includes = null): Builder
     {
@@ -95,8 +46,7 @@ trait CrudTrait
 
     /**
      * @param $includes
-     *
-     * @return array|null
+     * @return array|void
      */
     private function parseInclude($includes)
     {
@@ -115,6 +65,11 @@ trait CrudTrait
         }
     }
 
+    /**
+     * @param Builder $query
+     * @param array $params
+     * @return Builder
+     */
     private function runSearch(Builder $query, array $params): Builder
     {
         if (! method_exists($this, 'search')) {
@@ -140,6 +95,9 @@ trait CrudTrait
     }
 
     /**
+     * @param Builder $query
+     * @param string $column
+     * @param string $value
      * @return Builder
      */
     private function filterFullMatch(Builder $query, string $column, string $value)
@@ -147,6 +105,12 @@ trait CrudTrait
         return $query->where($column, $value);
     }
 
+    /**
+     * @param Builder $query
+     * @param string|null $column
+     * @param string|null $orderDir
+     * @return Builder
+     */
     private function runSort(Builder $query, string $column = null, string $orderDir = null): Builder
     {
         if (! isset($this->orderFields) || ! $column) {
@@ -164,67 +128,37 @@ trait CrudTrait
         return $query;
     }
 
-    public function scopeIsOwner(Builder $query, int $modelId, Request $request): bool
+    /**
+     * @param Builder $query
+     * @param int|string $modelId
+     * @param Request $request
+     * @param $withQuery
+     */
+    public function scopeViewResource(Builder $query, $modelId, Request $request, $withQuery)
     {
-        return $this->scopeResource($query, $modelId, $request, true)->get()->isNotEmpty();
+        $resource = $this->scopeResource($query, $modelId, $request, $withQuery)->firstOrFail();
+        \Response::json($resource)
+            ->setStatusCode(200)
+            ->send();
     }
 
-    public function scopeResource(Builder $query, int $modelId, Request $request, bool $checkOwner = false): Builder
+    /**
+     * @param Builder $query
+     * @param int|string $modelId
+     * @param Request $request
+     * @param $withQuery
+     * @return Builder
+     */
+    public function scopeResource(Builder $query, $modelId, Request $request, $withQuery): Builder
     {
-        if ($checkOwner && ! $request->user()) {
-            throw new UnauthorizedException('Access denied for the resource.');
-        }
-
-        if ($checkOwner) {
-            $this->checkRelation();
-            $query->whereHas($this->userRelation, function (Builder $hasQuery) use ($request) {
-                $hasQuery->where($this->userIdColumn, $request->user()[$this->userIdColumn]);
-            });
-        }
+        $withQuery($query);
         $query->where($this->primaryKey, $modelId);
         $this->runIncludes($query, $request->get('include', null));
 
         return $query;
     }
 
-    public function scopeViewResource(Builder $query, int $modelId, Request $request, bool $checkOwner = false)
-    {
-        if ($checkOwner && $request->user()) {
-            $this->checkRelation();
-            $query->whereHas($this->userRelation, function (Builder $hasQuery) use ($request) {
-                $hasQuery->where($this->userIdColumn, $request->user()[$this->userIdColumn]);
-            });
-        }
-
-        \Response::json($this->scopeResource($query, $modelId, $request, $checkOwner)->firstOrFail())
-            ->setStatusCode(200)
-            ->send();
-    }
-
     /**
-     * @return Builder|Model
-     */
-    public function scopeFindWithOwner(Builder $query, int $modelId, Request $request)
-    {
-        $this->checkRelation();
-        $query->where($this->primaryKey, $modelId);
-        $query->whereHas($this->userRelation, function (Builder $hasQuery) use ($request) {
-            $hasQuery->where($this->userIdColumn, $request->user()[$this->userIdColumn]);
-        });
-
-        return $query->firstOrFail();
-    }
-
-    /**
-     * Load "missing" relations.
-     *
-     * Define in your model what relations may be loaded
-     * from the param includes.
-     *
-     * protected $includes = [
-     *  'users'
-     * ];
-     *
      * @param Model $model
      * @param string|null $includes
      * @return Model

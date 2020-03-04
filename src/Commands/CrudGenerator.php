@@ -39,11 +39,11 @@ class CrudGenerator extends Command
     {
         $json = json_decode(\File::get(app_path('/console/Commands/crud-specs.json')), true);
 
-        $routes = "<?php\r\n".\View::make('laravelCrud::generators.route', ['data' => $json]);
-        // $routes = preg_replace('/\t+/', ' ', $routes);
+        $routes = "<?php\r\n".\View::make('generators.route', ['data' => $json]);
+        $routes = preg_replace('/\t+/', ' ', $routes);
 
-        // $routes = trim(preg_replace('/\s+/', ' ', $routes));
-        // $routes = str_replace([') ->', '; '], [')->', ";\r\n"], $routes);
+        $routes = trim(preg_replace('/\s+/', ' ', $routes));
+        $routes = str_replace([') ->', '; '], [')->', ";\r\n"], $routes);
 
         \File::put(base_path('routes/api.test.php'), $routes);
     }

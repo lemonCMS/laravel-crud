@@ -1,37 +1,32 @@
-namespace App\Http\Controllers\{{$namespace}}
+namespace App\Http\Controllers\{{$controller[0]['meta']['namespace']}};
 
 use App\Crud\Http\Controllers\CrudControllerTrait;
 use App\Http\Controllers\Controller;
+use Request;
 
-Class {{$controllerClass}} extends Controller
+Class {{$controller[0]['meta']['controller']}} extends Controller
 {
     use CrudControllerTrait;
 
-    @foreach($actions as $action)
-
-    /**
-    *
-    * @param Request $request
-    */
-    public function {{$action}}(Request $request) {
-        // @TODO Implemend code
-        // When this is a default laravel function
-        // e.g. index, store, update, show, purge
-        // You may delete this function to make use
-        // of the CrudController trait
-    }
-
+    @foreach($controller as $entry)
+        @includeWhen('action' === ($entry['type'] ?? false), 'generators.controllers.action', ['action' => $entry])
+        @foreach(($entry['actions'] ?? []) as $action)
+            @include('generators.controllers.action', ['action' => $action])
+        @endforeach
     @endforeach
-
 
     /*----------------------------------------
     |
-    | Default we say this controller is private
-    | You can change or remove this function
+    | Add extra clauses on to the query build
+    | E.g. only return the resources of the
+    | authorized user.
     |
     */
-    public function isPrivate(): boolean
-    {
-        return true;
-    }
+    // protected function withQuery(Builder $query)
+    // {
+    //     //TODO change this to match your relation.
+    //     return $query->whereHas('users', function (Builder $hasQuery) {
+    //         $hasQuery->where('user_id', Request::user()->id);
+    //     });
+    // }
 }

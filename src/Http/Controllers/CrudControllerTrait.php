@@ -2,13 +2,16 @@
 
 namespace LemonCMS\LaravelCrud\Http\Controllers;
 
-use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use LemonCMS\LaravelCrud\Exceptions\MissingEventException;
 use LemonCMS\LaravelCrud\Exceptions\MissingListenerException;
+use LemonCMS\LaravelCrud\Exceptions\MissingModelException;
 use LemonCMS\LaravelCrud\Exceptions\WrongControllerNameException;
-use LemonCMS\LaravelCrud\Http\Requests\CrudRequest;
 
 trait CrudControllerTrait
 {
@@ -30,21 +33,23 @@ trait CrudControllerTrait
 
     public function __construct()
     {
-        $this->namespacePrefix = config('crud.namespacePrefix', [
+        $this->namespacePrefix = config('crud.namespacePrefix', []) + [
             'controllers' => 'App\Http\Controllers',
             'events' => 'App\Events',
             'models' => 'App\Models',
+            'policies' => 'App\Models\Policies',
             'listeners' => 'App\Listeners',
             'requests' => 'App\Http\Requests',
-        ]);
+        ];
 
-        $this->suffixes = config('crud.suffixes', [
+        $this->suffixes = config('crud.suffixes', []) + [
             'controller' => 'Controller',
             'event' => 'Event',
             'model' => null,
+            'policy' => 'Policy',
             'listener' => 'Listener',
             'request' => 'Request',
-        ]);
+        ];
 
         $this->tryExtractNameFromClass();
     }
@@ -52,22 +57,23 @@ trait CrudControllerTrait
     private function tryExtractNameFromClass()
     {
         $bindingClassName = (last(explode('\\', get_called_class())));
-        if (!preg_match('/(.*)(Controller)$/i', $bindingClassName, $matches)) {
+        if (! preg_match('/(.*)(Controller)$/i', $bindingClassName, $matches)) {
             throw new WrongControllerNameException(
-                'The Controller ' . $bindingClassName . ' must end with `Controller.php`');
+                'The Controller '.$bindingClassName.' must end with `Controller.php`');
         }
 
-        $resource = config('crud.models.plural', false) ? Str::plural($matches[1]) : Str::singular($matches[1]);
+        $resource = Str::singular($matches[1]);
         $controllerNamespace = str_replace('\\', '\\\\\\', $this->namespacePrefix['controllers']);
 
-        preg_match('/' . $controllerNamespace . '(.*)' . $bindingClassName . '$/i', get_called_class(), $matches2);
+        preg_match('/'.$controllerNamespace.'(.*)'.$bindingClassName.'$/i', get_called_class(), $matches2);
         $resourceNamespace = $matches2[1];
 
         $this->namespaces = [
-            'controllers' => $this->namespacePrefix['controllers'] . $resourceNamespace,
-            'events' => $this->namespacePrefix['events'] . $resourceNamespace,
-            'models' => $this->namespacePrefix['models'] . $resourceNamespace,
-            'listeners' => $this->namespacePrefix['listeners'] . $resourceNamespace,
+            'controllers' => $this->namespacePrefix['controllers'].$resourceNamespace,
+            'events' => $this->namespacePrefix['events'].$resourceNamespace,
+            'models' => $this->namespacePrefix['models'].$resourceNamespace,
+            'policies' => $this->namespacePrefix['policies'].$resourceNamespace,
+            'listeners' => $this->namespacePrefix['listeners'].$resourceNamespace,
         ];
 
         $this->events = [
@@ -87,74 +93,88 @@ trait CrudControllerTrait
             'restore' => $this->combine('listeners', $resource, 'restore'),
         ];
 
-        if (!isset($this->model) || null === $this->model) {
+        if (! isset($this->model) || null === $this->model) {
             $this->model = $this->combine('models', $resource);
+        }
+
+        if (null === $this->model) {
+            throw new MissingModelException();
+        }
+
+        if (! isset($this->policy) || null === $this->policy) {
+            $this->policy = $this->combine('policies', $resource);
         }
     }
 
+    /**
+     * @param $namespace
+     * @param $resource
+     * @param null $type
+     * @return string
+     */
     private function combine($namespace, $resource, $type = null)
     {
         $namespacedPath =
-            $this->namespaces[$namespace] .
-            $resource .
-            ($type ? Str::studly($type) : '') .
+            $this->namespaces[$namespace].
+            $resource.
+            ($type ? Str::studly($type) : '').
             $this->suffixes[Str::singular($namespace)];
 
         if (class_exists($namespacedPath)) {
             return $namespacedPath;
         }
 
-        $path = $this->namespacePrefix[$namespace] .
-            '\\' .
-            $resource .
-            ($type ? Str::studly($type) : '') .
+        $path = $this->namespacePrefix[$namespace].
+            '\\'.
+            $resource.
+            ($type ? Str::studly($type) : '').
             $this->suffixes[Str::singular($namespace)];
 
         if (class_exists($path)) {
             return $path;
         }
-
-        return null;
     }
 
-    public function index(CrudRequest $request)
+    /**
+     * @param Request $request
+     * @throws ValidationException
+     */
+    public function index(Request $request)
     {
-        $this->authorizeAndValidate($request, 'default');
+        $this->runPolicy('viewAny');
+        $this->_validate($request, 'default');
         $this->_index($request);
     }
 
-    public function authorizeAndValidate(CrudRequest $request, string $event)
+    /**
+     * @param $type
+     * @param Model|null $record
+     */
+    protected function runPolicy($type, Model $record = null): void
     {
-        $this->_authorize($request, $event);
-        $this->_validate($request, $event);
-    }
-
-    public function _authorize(CrudRequest $request, string $event)
-    {
-        if (is_callable([$this->events[$event], 'authorize'])) {
-            $authorized = call_user_func([$this->events[$event], 'authorize'], $request);
-            if (!$authorized) {
-                throw new AuthorizationException('You are not authorized to execute this action');
-            }
-
-            return true;
+        if (! $this->usePolicies()) {
+            return;
         }
 
-        if ('default' === $event) {
-            return true;
+        if (is_callable([$this->policy, $type])) {
+            $this->authorize($type, ($record ?: $this->model));
+
+            return;
         }
 
-        if (is_callable([$this->events['default'], 'authorize'])) {
-            $authorized = call_user_func([$this->events['default'], 'authorize'], $request);
-            if (!$authorized) {
-                throw new AuthorizationException('You are not authorized to execute this action');
-            }
-
-            return true;
+        $type = 'default';
+        if (is_callable([$this->policy, $type])) {
+            $this->authorize($type, ($record ?: $this->model));
         }
     }
 
-    public function _validate(CrudRequest $request, string $event)
+    /**
+     * @param Request $request
+     * @param string $event
+     * @return bool
+     * @throws ValidationException
+     */
+    public function _validate(Request $request, string $event)
     {
         if (is_callable([$this->events[$event], 'rules'])) {
             $validator = Validator::make($request->all(), call_user_func([$this->events[$event], 'rules'], $request));
@@ -178,97 +198,196 @@ trait CrudControllerTrait
         }
     }
 
-    public function _index(CrudRequest $request)
+    /**
+     * @param Request $request
+     */
+    public function _index(Request $request)
     {
-        call_user_func([$this->model, 'paginatedResources'], $request, $this->isPrivate());
+        call_user_func([$this->model, 'paginatedResources'], $request, $this->getCallback());
     }
 
-    public function isPrivate()
+    /**
+     * @return bool
+     */
+    protected function usePolicies()
     {
-        return false;
+        return true;
     }
 
-    public function store(CrudRequest $request)
+    /**
+     * @return \Closure
+     */
+    protected function getCallback()
     {
-        $this->authorizeAndValidate($request, 'store');
+        return function (Builder $query) {
+            return $this->withQuery($query);
+        };
+    }
+
+    /**
+     * @param Builder $query
+     * @return Builder
+     */
+    protected function withQuery(Builder $query)
+    {
+        return $query;
+    }
+
+    /**
+     * @param Request $request
+     * @throws MissingEventException
+     * @throws MissingListenerException
+     * @throws ValidationException
+     */
+    public function store(Request $request)
+    {
+        $this->runPolicy('create');
+
+        $this->_validate($request, 'store');
 
         $this->_store($request);
     }
 
-    protected function _store(CrudRequest $request)
+    /**
+     * @param Request $request
+     * @throws MissingEventException
+     * @throws MissingListenerException
+     */
+    protected function _store(Request $request)
     {
-        if (!is_callable([$this->events['store'], 'fromPayload'])) {
+        if (! is_callable([$this->events['store'], 'fromPayload'])) {
             throw new MissingEventException($this->events['store']);
         }
 
-        if (!is_callable([$this->listeners['store'], 'handle'])) {
+        if (! is_callable([$this->listeners['store'], 'handle'])) {
             throw new MissingListenerException($this->listeners['store']);
         }
 
-        event(call_user_func([$this->events['store'], 'fromPayload'], null, $request->all(), $request->user()));
+        event(call_user_func([$this->events['store'], 'fromPayload'],
+            null,
+            $request->all(),
+            $request->user(),
+            $this->getCallback()
+        ));
     }
 
-    public function show(CrudRequest $request, int $id)
+    /**
+     * @param Request $request
+     * @param int|string $id
+     */
+    public function show(Request $request, $id)
     {
-        $this->authorizeAndValidate($request, 'show');
+        $record = call_user_func([$this->model, 'find'], $id);
+        $this->runPolicy('view', $record);
 
         $this->_show($request, $id);
     }
 
-    protected function _show(CrudRequest $request, int $id)
+    /**
+     * @param Request $request
+     * @param int|string $id
+     */
+    protected function _show(Request $request, $id)
     {
-        call_user_func([$this->model, 'viewResource'], $id, $request, $this->isPrivate());
+        call_user_func([$this->model, 'viewResource'], $id, $request, $this->getCallback());
     }
 
-    public function update(CrudRequest $request, int $id)
+    /**
+     * @param Request $request
+     * @param int|string $id
+     * @throws MissingEventException
+     * @throws MissingListenerException
+     * @throws ValidationException
+     */
+    public function update(Request $request, $id)
     {
-        $this->authorizeAndValidate($request, 'update');
+        $record = call_user_func([$this->model, 'viewResource'], $id, $request, $this->getCallback());
+        $this->runPolicy('update', $record);
 
+        $this->_validate($request, 'update');
         $this->_update($request, $id);
     }
 
-    protected function _update(CrudRequest $request, int $id)
+    /**
+     * @param Request $request
+     * @param int|string $id
+     * @throws MissingEventException
+     * @throws MissingListenerException
+     */
+    protected function _update(Request $request, $id)
     {
-        if (!is_callable([$this->events['update'], 'fromPayload'])) {
+        if (! is_callable([$this->events['update'], 'fromPayload'])) {
             throw new MissingEventException($this->events['update']);
         }
 
-        if (!is_callable([$this->listeners['update'], 'handle'])) {
+        if (! is_callable([$this->listeners['update'], 'handle'])) {
             throw new MissingListenerException($this->listeners['update']);
         }
 
-        event(call_user_func([$this->events['update'], 'fromPayload'], $id, $request->all(), $request->user()));
+        event(call_user_func([$this->events['update'], 'fromPayload'], $id, $request->all()));
     }
 
-    public function destroy(CrudRequest $request, int $id)
+    /**
+     * @param Request $request
+     * @param int|string $id
+     * @throws MissingEventException
+     * @throws MissingListenerException
+     * @throws ValidationException
+     */
+    public function destroy(Request $request, $id)
     {
-        $this->authorizeAndValidate($request, 'destroy');
+        $record = call_user_func([$this->model, 'viewResource'], $id, $request, $this->getCallback());
+        $this->runPolicy('delete', $record);
 
+        $this->_validate($request, 'destroy');
         $this->_destroy($request, $id);
     }
 
-    protected function _destroy(CrudRequest $request, int $id)
+    /**
+     * @param Request $request
+     * @param int|string $id
+     * @throws MissingEventException
+     * @throws MissingListenerException
+     */
+    protected function _destroy(Request $request, $id)
     {
-        if (!is_callable([$this->events['destroy'], 'fromPayload'])) {
+        if (! is_callable([$this->events['destroy'], 'fromPayload'])) {
             throw new MissingEventException($this->events['destroy']);
         }
 
-        if (!is_callable([$this->listeners['destroy'], 'handle'])) {
+        if (! is_callable([$this->listeners['destroy'], 'handle'])) {
             throw new MissingListenerException($this->listeners['destroy']);
         }
 
-        event(call_user_func([$this->events['destroy'], 'fromPayload'], $id, $request->all()));
+        event(call_user_func([$this->events['destroy'], 'fromPayload'], $id, $request->all(), $this->getCallback()));
     }
 
-    public function restore(CrudRequest $request, int $id)
+    /**
+     * @param Request $request
+     * @param int|string $id
+     * @throws ValidationException
+     */
+    public function restore(Request $request, $id)
     {
-        $this->authorizeAndValidate($request, 'restore');
+        $callback = function (Builder $query) {
+            $query->withTrashed();
+            $this->getCallback()($query);
+        };
+
+        $record = call_user_func([$this->model, 'viewResource'], $id, $request, $callback);
+        $this->runPolicy('restore', $record);
+
+        $this->_validate($request, 'restore');
 
         $this->_restore($request, $id);
     }
 
-    protected function _restore(CrudRequest $request, int $id)
+    /**
+     * @param Request $request
+     * @param int|string $id
+     */
+    protected function _restore(Request $request, $id)
     {
-        event(call_user_func([$this->events['destroy'], 'fromPayload'], $id, $request->all()));
+        event(call_user_func([$this->events['destroy'], 'fromPayload'], $id, $request->all(), $this->getCallback()));
     }
 }

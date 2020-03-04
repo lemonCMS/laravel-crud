@@ -2,18 +2,21 @@
 
 namespace LemonCMS\LaravelCrud\Listeners;
 
+use App\Crud\Events\AbstractCrudEvent;
+use App\Crud\Events\CrudEventLogger;
+use App\Crud\Http\Requests\CrudRequest;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use LemonCMS\LaravelCrud\Events\AbstractCrudEvent;
-use LemonCMS\LaravelCrud\Events\CrudEventLogger;
-use LemonCMS\LaravelCrud\Http\Requests\CrudRequest;
-use Request as RequestFacade;
 
 abstract class CrudListener
 {
+    /**
+     * @var string
+     */
+    public $className;
     /**
      * @var null
      */
@@ -22,10 +25,6 @@ abstract class CrudListener
      * @var string
      */
     protected $resourceLoader = 'resource';
-    /**
-     * @var string
-     */
-    public $className;
     /**
      * @var Request
      */
@@ -43,6 +42,11 @@ abstract class CrudListener
      */
     protected $entity = null;
 
+    /**
+     * CrudListener constructor.
+     * @param CrudRequest $request
+     * @param Response $response
+     */
     public function __construct(CrudRequest $request, Response $response)
     {
         $this->request = $request;
@@ -50,6 +54,9 @@ abstract class CrudListener
         $this->className = __CLASS__;
     }
 
+    /**
+     * @param AbstractCrudEvent $event
+     */
     public function init(AbstractCrudEvent $event)
     {
         $this->event = $event;
@@ -69,17 +76,6 @@ abstract class CrudListener
 
         $this->run();
         $this->logEvent();
-    }
-
-    public function logEvent(AbstractCrudEvent $event = null)
-    {
-        if (null === $event && $this->event) {
-            event(new CrudEventLogger(get_class($this->event), $this->event->toPayload() + ['id' => $this->entity->id]));
-
-            return;
-        }
-
-        event(new CrudEventLogger(get_class($event), $event->toPayload()));
     }
 
     private function run()
@@ -155,23 +151,17 @@ abstract class CrudListener
             ->send();
     }
 
-    public function attachCurrentUser()
+    /**
+     * @param AbstractCrudEvent|null $event
+     */
+    public function logEvent(AbstractCrudEvent $event = null)
     {
-        if (is_callable([$this->entity, $this->entity->userRelation])) {
-            $relation = call_user_func([$this->entity, $this->entity->userRelation]);
-            $relation->attach(RequestFacade::user()->id);
-        }
-    }
+        if (null === $event && $this->event) {
+            event(new CrudEventLogger(get_class($this->event), $this->event->toPayload() + ['id' => $this->entity->id]));
 
-    public function detachCurrentUser()
-    {
-        if (null === RequestFacade::user()) {
             return;
         }
 
-        if (is_callable([$this->entity, $this->entity->userRelation])) {
-            $relation = call_user_func([$this->entity, $this->entity->userRelation]);
-            $relation->detach(RequestFacade::user()->id);
-        }
+        event(new CrudEventLogger(get_class($event), $event->toPayload()));
     }
 }

@@ -198,14 +198,14 @@ class ControllerTest extends TestCase
         $response = $this->getJson('api/dashboard/blogs/1?include=doesNoExists');
         $response->assertStatus(401);
 
-        Response::shouldReceive('json')->once()->withArgs(function (Blog $response) {
+        Response::shouldReceive('json')->once()->withArgs(function ($response) {
             $collection = $response->toArray();
             $this->assertEqualsCanonicalizing([
                 'id' => 1,
                 'title' => 'Blog post 1',
                 'description' => 'Description of a blog post NO 1',
-                'created_at' => '',
-                'updated_at' => '',
+                'created_at' => null,
+                'updated_at' => null,
             ], $collection);
 
             return true;

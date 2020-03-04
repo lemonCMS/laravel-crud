@@ -26,7 +26,7 @@ class Users extends Migration
             'email' => 'user1@gimball.tv',
             'password' => \Illuminate\Support\Facades\Hash::make('password-1'),
             'created_at' => \Carbon\Carbon::now(),
-            'updated_at' => \Carbon\Carbon::now()
+            'updated_at' => \Carbon\Carbon::now(),
         ]);
     }
 }
