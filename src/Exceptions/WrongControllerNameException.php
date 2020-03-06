@@ -4,7 +4,7 @@ namespace LemonCMS\LaravelCrud\Exceptions;
 
 use Exception;
 
-class WrongControllerNameException extends Exception
+class WrongControllerNameException extends BaseCrudException
 {
     public function __construct($message, $code = 503, Exception $previous = null)
     {

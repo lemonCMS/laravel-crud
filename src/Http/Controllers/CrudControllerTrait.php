@@ -98,7 +98,7 @@ trait CrudControllerTrait
         }
 
         if (null === $this->model) {
-            throw new MissingModelException();
+            throw new MissingModelException($resource);
         }
 
         if (! isset($this->policy) || null === $this->policy) {
@@ -110,7 +110,7 @@ trait CrudControllerTrait
      * @param $namespace
      * @param $resource
      * @param null $type
-     * @return string
+     * @return string|null
      */
     private function combine($namespace, $resource, $type = null)
     {
@@ -133,6 +133,8 @@ trait CrudControllerTrait
         if (class_exists($path)) {
             return $path;
         }
+
+        return null;
     }
 
     /**

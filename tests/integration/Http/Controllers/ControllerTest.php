@@ -136,7 +136,8 @@ class ControllerTest extends TestCase
     public function testIndexWithWrongControllerName()
     {
         $response = $this->getJson('api/does-not-work?id=2');
-        $response->assertStatus(500);
+        $this->assertEquals('The Controller DoesNotWork must end with `Controller.php`', $response->exception->getMessage());
+        $this->assertEquals(503, $response->exception->getCode());
     }
 
     public function testFetchResource()

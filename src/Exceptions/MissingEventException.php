@@ -4,7 +4,7 @@ namespace LemonCMS\LaravelCrud\Exceptions;
 
 use Exception;
 
-class MissingEventException extends Exception
+class MissingEventException extends BaseCrudException
 {
     public function __construct($message, $code = 405, Exception $previous = null)
     {
