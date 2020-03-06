@@ -4,11 +4,9 @@ namespace LemonCMS\LaravelCrud\Events;
 
 use Illuminate\Http\Request;
 
-abstract class AbstractCrudEvent
+abstract class AbstractCrudEvent implements \JsonSerializable
 {
-    abstract public static function fromPayload($id, array $payload);
-
-    abstract public static function authorize(Request $request): bool;
+    abstract public static function fromPayload($id, string $model, array $payload);
 
     abstract public static function rules(Request $request): array;
 

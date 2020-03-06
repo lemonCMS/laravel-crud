@@ -31,6 +31,8 @@ trait CrudControllerTrait
     protected $requests = [
     ];
 
+    protected $model = null;
+
     public function __construct()
     {
         $this->namespacePrefix = config('crud.namespacePrefix', []) + [
@@ -267,6 +269,7 @@ trait CrudControllerTrait
 
         event(call_user_func([$this->events['store'], 'fromPayload'],
             null,
+            $this->model,
             $request->all(),
             $request->user(),
             $this->getCallback()
@@ -291,7 +294,7 @@ trait CrudControllerTrait
      */
     protected function _show(Request $request, $id)
     {
-        call_user_func([$this->model, 'viewResource'], $id, $request, $this->getCallback());
+        call_user_func([$this->model, 'viewResource'], $id, $this->model, $request, $this->getCallback());
     }
 
     /**
@@ -303,7 +306,7 @@ trait CrudControllerTrait
      */
     public function update(Request $request, $id)
     {
-        $record = call_user_func([$this->model, 'viewResource'], $id, $request, $this->getCallback());
+        $record = call_user_func([$this->model, 'viewResource'], $id, $this->model, $request, $this->getCallback());
         $this->runPolicy('update', $record);
 
         $this->_validate($request, 'update');
@@ -326,7 +329,7 @@ trait CrudControllerTrait
             throw new MissingListenerException($this->listeners['update']);
         }
 
-        event(call_user_func([$this->events['update'], 'fromPayload'], $id, $request->all()));
+        event(call_user_func([$this->events['update'], 'fromPayload'], $id, $this->model, $request->all()));
     }
 
     /**
@@ -338,7 +341,7 @@ trait CrudControllerTrait
      */
     public function destroy(Request $request, $id)
     {
-        $record = call_user_func([$this->model, 'viewResource'], $id, $request, $this->getCallback());
+        $record = call_user_func([$this->model, 'viewResource'], $id, $this->model, $request, $this->getCallback());
         $this->runPolicy('delete', $record);
 
         $this->_validate($request, 'destroy');
@@ -361,7 +364,7 @@ trait CrudControllerTrait
             throw new MissingListenerException($this->listeners['destroy']);
         }
 
-        event(call_user_func([$this->events['destroy'], 'fromPayload'], $id, $request->all(), $this->getCallback()));
+        event(call_user_func([$this->events['destroy'], 'fromPayload'], $id, $this->model, $request->all(), $this->getCallback()));
     }
 
     /**
@@ -376,7 +379,7 @@ trait CrudControllerTrait
             $this->getCallback()($query);
         };
 
-        $record = call_user_func([$this->model, 'viewResource'], $id, $request, $callback);
+        $record = call_user_func([$this->model, 'viewResource'], $id, $this->model, $request, $callback);
         $this->runPolicy('restore', $record);
 
         $this->_validate($request, 'restore');
@@ -390,6 +393,6 @@ trait CrudControllerTrait
      */
     protected function _restore(Request $request, $id)
     {
-        event(call_user_func([$this->events['destroy'], 'fromPayload'], $id, $request->all(), $this->getCallback()));
+        event(call_user_func([$this->events['destroy'], 'fromPayload'], $id, $this->model, $request->all(), $this->getCallback()));
     }
 }

@@ -2,9 +2,9 @@
 
 namespace LemonCMS\LaravelCrud\Listeners;
 
-use App\Crud\Events\AbstractCrudEvent;
-use App\Crud\Events\CrudEventLogger;
-use App\Crud\Http\Requests\CrudRequest;
+use LemonCMS\LaravelCrud\Events\AbstractCrudEvent;
+use LemonCMS\LaravelCrud\Events\CrudEventLogger;
+use LemonCMS\LaravelCrud\Http\Requests\CrudRequest;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -47,7 +47,7 @@ abstract class CrudListener
      * @param CrudRequest $request
      * @param Response $response
      */
-    public function __construct(CrudRequest $request, Response $response)
+    public function __construct(Request $request, Response $response)
     {
         $this->request = $request;
         $this->response = $response;
@@ -60,6 +60,10 @@ abstract class CrudListener
     public function init(AbstractCrudEvent $event)
     {
         $this->event = $event;
+
+        if (null === $this->model) {
+            $this->model = $this->event->getModel() ?: null;
+        }
 
         if (null === $this->model) {
             return;
@@ -85,7 +89,7 @@ abstract class CrudListener
         }
 
         Log::debug('Listener: '.__CLASS__);
-        foreach ($this->event->toPayload() as $field => $value) {
+        foreach ($this->event->jsonSerialize() as $field => $value) {
             $method = Str::camel('set_'.$field);
             Log::debug('Searching method: '.$method);
             if (! is_callable([$this, $method])) {
@@ -157,11 +161,11 @@ abstract class CrudListener
     public function logEvent(AbstractCrudEvent $event = null)
     {
         if (null === $event && $this->event) {
-            event(new CrudEventLogger(get_class($this->event), $this->event->toPayload() + ['id' => $this->entity->id]));
+            event(new CrudEventLogger(get_class($this->event), $this->event->jsonSerialize() + ['id' => $this->entity->id]));
 
             return;
         }
 
-        event(new CrudEventLogger(get_class($event), $event->toPayload()));
+        event(new CrudEventLogger(get_class($event), $event->jsonSerialize()));
     }
 }

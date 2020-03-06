@@ -14,10 +14,12 @@ class CrudEvent extends AbstractCrudEvent
     use SerializesModels;
 
     public $id;
+    public $model;
 
-    public function __construct($id)
+    public function __construct($id, $model)
     {
         $this->id = $id;
+        $this->model = $model;
     }
 
     /**
@@ -29,6 +31,14 @@ class CrudEvent extends AbstractCrudEvent
     }
 
     /**
+     * @return mixed
+     */
+    public function getModel()
+    {
+        return $this->model;
+    }
+
+    /**
      * @param string $id
      */
     public function setId(string $id)
@@ -36,18 +46,21 @@ class CrudEvent extends AbstractCrudEvent
         $this->id = $id;
     }
 
-    public static function fromPayload($id, array $payload)
+    public static function fromPayload($id, string $model, array $payload)
     {
-        return new self($id);
-    }
-
-    public static function authorize(Request $request): bool
-    {
-        return true;
+        return new self($id, $model);
     }
 
     public static function rules(Request $request): array
     {
         return [];
+    }
+
+    public function jsonSerialize()
+    {
+        return [
+            'id' => $this->getId(),
+            'model' => $this->getModel(),
+        ];
     }
 }

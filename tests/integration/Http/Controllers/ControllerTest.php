@@ -6,6 +6,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Response;
 use Mockery;
 use Orchestra\Testbench\TestCase;
+use TestApp\EventServiceProvider;
 use TestApp\Models\Blog;
 use TestApp\Models\User;
 
@@ -194,7 +195,7 @@ class ControllerTest extends TestCase
         $response->assertStatus(500);
     }
 
-    public function testDashboard()
+    public function testDashboardGet()
     {
         $response = $this->getJson('api/dashboard/blogs/1?include=doesNoExists');
         $response->assertStatus(401);
@@ -217,6 +218,18 @@ class ControllerTest extends TestCase
 
         $user = User::first();
         $this->actingAs($user)->getJson('api/dashboard/blogs/1');
+    }
+
+    public function testDashboardStore()
+    {
+        $user = User::first();
+
+        $response = $this->actingAs($user)->postJson('api/dashboard/blogs', [
+            'title' => 'Best blog in the world!',
+            'description' => 'The Netherlands second'
+        ]);
+
+        $response->assertStatus(401);
     }
 
     public function testFetchResourceNotFound()
@@ -287,6 +300,7 @@ class ControllerTest extends TestCase
     {
         return [
             'LemonCMS\LaravelCrud\ServiceProvider',
+            'TestApp\EventServiceProvider',
         ];
     }
 
