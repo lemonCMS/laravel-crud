@@ -2,11 +2,11 @@
 
 namespace Tester\Http\Controllers;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Response;
 use Mockery;
 use Orchestra\Testbench\TestCase;
-use TestApp\EventServiceProvider;
 use TestApp\Models\Blog;
 use TestApp\Models\User;
 
@@ -222,14 +222,26 @@ class ControllerTest extends TestCase
 
     public function testDashboardStore()
     {
-        $user = User::first();
+        $mock = Mockery::mock('Illuminate\Http\Response');
+        $this->app->instance('Illuminate\Http\Response', $mock);
 
+        $mock->shouldReceive('setContent')->withArgs(function (Model $record) {
+            $this->assertEquals(3, $record->id);
+            $this->assertEquals('Best blog in the world!', $record->title);
+            $this->assertEquals('The Netherlands second', $record->description);
+
+            return true;
+        })->andReturnSelf();
+        $mock->shouldReceive('setStatusCode')->with(201)->andReturnSelf();
+        $mock->shouldReceive('send');
+
+        $user = User::first();
         $response = $this->actingAs($user)->postJson('api/dashboard/blogs', [
             'title' => 'Best blog in the world!',
-            'description' => 'The Netherlands second'
+            'description' => 'The Netherlands second',
         ]);
 
-        $response->assertStatus(401);
+        $response->assertStatus(200);
     }
 
     public function testFetchResourceNotFound()
@@ -281,7 +293,7 @@ class ControllerTest extends TestCase
         $app['router']->resource('api/blogs', '\TestApp\Http\Controllers\BlogController');
         $app['router']->resource('api/does-not-work', '\TestApp\Http\Controllers\DoesNotWork');
 
-        $app['router']->group(['prefix' => 'api/dashboard',  'middleware' => 'auth'], function ($group) use ($app) {
+        $app['router']->group(['prefix' => 'api/dashboard', 'middleware' => 'auth'], function ($group) use ($app) {
             $group->resource('blogs', '\TestApp\Http\Controllers\BlogController');
         });
     }

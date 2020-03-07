@@ -4,7 +4,6 @@ namespace TestApp\Events;
 
 class BlogStoreEvent extends BaseBlogEvent
 {
-
     /**
      * @param $id
      * @param array $payload

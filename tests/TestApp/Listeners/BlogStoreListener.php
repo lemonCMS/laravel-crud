@@ -5,7 +5,8 @@ namespace TestApp\Listeners;
 use LemonCMS\LaravelCrud\Listeners\CrudListener;
 use TestApp\Events\BlogStoreEvent;
 
-class BlogStoreListener extends CrudListener {
+class BlogStoreListener extends CrudListener
+{
     /**
      * @var BlogStoreEvent
      */
@@ -30,7 +31,8 @@ class BlogStoreListener extends CrudListener {
         // $this->entity->users()->attach(\Request::user()->id);
     }
 
-    public function subscribe($events) {
+    public function subscribe($events)
+    {
         die('SUBSCRIBE');
     }
 }

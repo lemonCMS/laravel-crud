@@ -29,7 +29,7 @@ class CrudEventLogger implements \JsonSerializable
         }
         $this->payload = $payload + [
                 'meta' => [
-                    'REMOTE_ADDR' => $_SERVER['REMOTE_ADDR'],
+                    'REMOTE_ADDR' => $_SERVER['REMOTE_ADDR'] ?? null,
                     'HTTP_REFERER' => $_SERVER['HTTP_REFERER'] ?? null,
                     'REQUEST_URI' => $_SERVER['REQUEST_URI'] ?? null,
                 ],

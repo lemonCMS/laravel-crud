@@ -135,8 +135,6 @@ trait CrudControllerTrait
         if (class_exists($path)) {
             return $path;
         }
-
-        return null;
     }
 
     /**
@@ -294,7 +292,7 @@ trait CrudControllerTrait
      */
     protected function _show(Request $request, $id)
     {
-        call_user_func([$this->model, 'viewResource'], $id, $this->model, $request, $this->getCallback());
+        call_user_func([$this->model, 'viewResource'], $id, $request, $this->getCallback());
     }
 
     /**
@@ -306,7 +304,7 @@ trait CrudControllerTrait
      */
     public function update(Request $request, $id)
     {
-        $record = call_user_func([$this->model, 'viewResource'], $id, $this->model, $request, $this->getCallback());
+        $record = call_user_func([$this->model, 'viewResource'], $id, $request, $this->getCallback());
         $this->runPolicy('update', $record);
 
         $this->_validate($request, 'update');
@@ -341,7 +339,7 @@ trait CrudControllerTrait
      */
     public function destroy(Request $request, $id)
     {
-        $record = call_user_func([$this->model, 'viewResource'], $id, $this->model, $request, $this->getCallback());
+        $record = call_user_func([$this->model, 'viewResource'], $id, $request, $this->getCallback());
         $this->runPolicy('delete', $record);
 
         $this->_validate($request, 'destroy');
@@ -379,7 +377,7 @@ trait CrudControllerTrait
             $this->getCallback()($query);
         };
 
-        $record = call_user_func([$this->model, 'viewResource'], $id, $this->model, $request, $callback);
+        $record = call_user_func([$this->model, 'viewResource'], $id, $request, $callback);
         $this->runPolicy('restore', $record);
 
         $this->_validate($request, 'restore');

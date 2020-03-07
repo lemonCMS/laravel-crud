@@ -2,14 +2,14 @@
 
 namespace LemonCMS\LaravelCrud\Listeners;
 
-use LemonCMS\LaravelCrud\Events\AbstractCrudEvent;
-use LemonCMS\LaravelCrud\Events\CrudEventLogger;
-use LemonCMS\LaravelCrud\Http\Requests\CrudRequest;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use LemonCMS\LaravelCrud\Events\AbstractCrudEvent;
+use LemonCMS\LaravelCrud\Events\CrudEventLogger;
+use LemonCMS\LaravelCrud\Http\Requests\CrudRequest;
 
 abstract class CrudListener
 {
@@ -110,7 +110,7 @@ abstract class CrudListener
 
         if ($this->entity->isClean()) {
             Log::debug('Entity is clean, skipping');
-            $this->response($this->entity, 200);
+            $this->response->json($this->entity, 200);
 
             return;
         }

@@ -20,6 +20,9 @@ class BaseBlogEvent extends CrudEvent
      * AccountUpdate constructor.
      *
      * @param $id
+     * @param string $model
+     * @param string $title
+     * @param string $description
      */
     public function __construct($id, string $model, string $title, string $description)
     {
@@ -30,6 +33,7 @@ class BaseBlogEvent extends CrudEvent
 
     /**
      * @param $id
+     * @param string $model
      * @param array $payload
      * @return BaseBlogEvent
      */

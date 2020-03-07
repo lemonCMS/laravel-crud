@@ -31,7 +31,7 @@ class EventServiceProvider extends ServiceProvider
     {
         return [
             $this->app->path('Listeners'),
-            realpath($this->app->basePath('../../../../tests/TestApp/Listeners'))
+            realpath($this->app->basePath('../../../../tests/TestApp/Listeners')),
         ];
     }
 
@@ -45,5 +45,4 @@ class EventServiceProvider extends ServiceProvider
 //            return true;
 //        });
 //    }
-
 }

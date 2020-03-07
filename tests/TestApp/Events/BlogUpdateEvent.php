@@ -2,7 +2,6 @@
 
 namespace TestApp\Events;
 
-
 class BlogUpdateEvent extends BaseBlogEvent
 {
     /**
