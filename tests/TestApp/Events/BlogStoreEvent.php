@@ -11,7 +11,7 @@ class BlogStoreEvent extends BaseBlogEvent
      */
     public static function fromPayload($id, string $model, array $payload)
     {
-        return new self(
+        return new static(
             null,
             $model,
             $payload['title'],

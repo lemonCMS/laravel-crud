@@ -149,9 +149,11 @@ trait CrudTrait
      * @param $withQuery
      * @return Builder
      */
-    public function scopeResource(Builder $query, $modelId, Request $request, $withQuery): Builder
+    public function scopeResource(Builder $query, $modelId, Request $request, $withQuery = null): Builder
     {
-        $withQuery($query);
+        if ($withQuery && is_callable($withQuery)) {
+            $withQuery($query);
+        }
         $query->where($this->primaryKey, $modelId);
         $this->runIncludes($query, $request->get('include', null));
 

@@ -15,6 +15,15 @@ class EventServiceProvider extends ServiceProvider
         'TestApp\Events\BlogStoreEvent' => [
             'TestApp\Listeners\BlogStoreListener',
         ],
+        'TestApp\Events\BlogUpdateEvent' => [
+            'TestApp\Listeners\BlogUpdateListener',
+        ],
+        'TestApp\Events\BlogDestroyEvent' => [
+            'TestApp\Listeners\BlogDestroyListener',
+        ],
+        'TestApp\Events\BlogRestoreEvent' => [
+            'TestApp\Listeners\BlogRestoreListener',
+        ],
     ];
 
     /**

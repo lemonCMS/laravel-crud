@@ -5,6 +5,9 @@ namespace Tester\Http\Controllers;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Response;
+use LemonCMS\LaravelCrud\Exceptions\MissingEventException;
+use LemonCMS\LaravelCrud\Exceptions\MissingListenerException;
+use LemonCMS\LaravelCrud\Exceptions\MissingModelException;
 use Mockery;
 use Orchestra\Testbench\TestCase;
 use TestApp\Models\Blog;
@@ -16,7 +19,6 @@ class ControllerTest extends TestCase
     {
         Response::shouldReceive('json')->once()->withArgs(function (LengthAwarePaginator $response) {
             $collection = $response->getCollection()->toArray();
-
             $this->assertEqualsCanonicalizing([
                 [
                     'id' => 1,
@@ -24,6 +26,7 @@ class ControllerTest extends TestCase
                     'description' => 'Description of a blog post NO 1',
                     'created_at' => '',
                     'updated_at' => '',
+                    'deleted_at' => '',
                 ],
                 [
                     'id' => 2,
@@ -31,6 +34,7 @@ class ControllerTest extends TestCase
                     'description' => 'Description of a blog post NO 2',
                     'created_at' => '',
                     'updated_at' => '',
+                    'deleted_at' => '',
                 ],
             ], $collection);
             $this->assertEquals(2, $response->count());
@@ -56,6 +60,7 @@ class ControllerTest extends TestCase
                         'description' => 'Description of a blog post NO 1',
                         'created_at' => '',
                         'updated_at' => '',
+                        'deleted_at' => '',
                         'tags' => [
                             ['id' => 1, 'blog_id' => 1, 'tag' => 'Tag 1'],
                             ['id' => 2, 'blog_id' => 1, 'tag' => 'Tag 2'],
@@ -90,6 +95,7 @@ class ControllerTest extends TestCase
                         'description' => 'Description of a blog post NO 2',
                         'created_at' => '',
                         'updated_at' => '',
+                        'deleted_at' => '',
                     ],
                 ], $collection);
                 $this->assertEquals(1, $response->count());
@@ -118,6 +124,7 @@ class ControllerTest extends TestCase
                         'description' => 'Description of a blog post NO 2',
                         'created_at' => '',
                         'updated_at' => '',
+                        'deleted_at' => '',
                     ],
                 ], $collection);
                 $this->assertEquals(1, $response->count());
@@ -151,6 +158,7 @@ class ControllerTest extends TestCase
                 'description' => 'Description of a blog post NO 1',
                 'created_at' => '',
                 'updated_at' => '',
+                'deleted_at' => '',
             ], $collection);
 
             return true;
@@ -173,6 +181,7 @@ class ControllerTest extends TestCase
                     'description' => 'Description of a blog post NO 1',
                     'created_at' => '',
                     'updated_at' => '',
+                    'deleted_at' => '',
                     'tags' => [
                         ['id' => 1, 'blog_id' => 1, 'tag' => 'Tag 1'],
                         ['id' => 2, 'blog_id' => 1, 'tag' => 'Tag 2'],
@@ -208,6 +217,7 @@ class ControllerTest extends TestCase
                 'description' => 'Description of a blog post NO 1',
                 'created_at' => null,
                 'updated_at' => null,
+                'deleted_at' => null,
             ], $collection);
 
             return true;
@@ -244,10 +254,103 @@ class ControllerTest extends TestCase
         $response->assertStatus(200);
     }
 
+    public function testDashboardUpdate()
+    {
+        $mock = Mockery::mock('Illuminate\Http\Response');
+        $this->app->instance('Illuminate\Http\Response', $mock);
+
+        $mock->shouldReceive('setContent')->withArgs(function (Model $record) {
+            $this->assertEquals(1, $record->id);
+            $this->assertEquals('Best blog in the world!', $record->title);
+            $this->assertEquals('The Netherlands second', $record->description);
+
+            return true;
+        })->andReturnSelf();
+        $mock->shouldReceive('setStatusCode')->with(201)->andReturnSelf();
+        $mock->shouldReceive('send');
+
+        $user = User::first();
+        $response = $this->actingAs($user)->putJson('api/dashboard/blogs/1', [
+            'title' => 'Best blog in the world!',
+            'description' => 'The Netherlands second',
+        ]);
+
+        $response->assertStatus(200);
+    }
+
+    public function testDashboardDestroyAndRestore()
+    {
+        $mock = Mockery::mock('Illuminate\Http\Response');
+        $this->app->instance('Illuminate\Http\Response', $mock);
+
+        $mock->shouldReceive('setContent')->withArgs(function ($response) {
+            $this->assertEquals(1, $response->id);
+            $this->assertEquals('Blog post 1', $response->title);
+            $this->assertEquals('Description of a blog post NO 1', $response->description);
+
+            return true;
+        })->andReturnSelf();
+        $mock->shouldReceive('setStatusCode')->with(200)->andReturnSelf();
+        $mock->shouldReceive('send');
+
+        $user = User::first();
+        $response = $this->actingAs($user)->deleteJson('api/dashboard/blogs/1');
+        $response->assertStatus(200);
+
+        $response = $this->actingAs($user)->getJson('api/dashboard/blogs/1');
+        $response->assertStatus(404);
+
+        $mock = Mockery::mock('Illuminate\Http\Response');
+        $this->app->instance('Illuminate\Http\Response', $mock);
+        $mock->shouldReceive('setContent')->withArgs(function ($response) {
+            $this->assertEquals(1, $response->id);
+            $this->assertEquals('Blog post 1', $response->title);
+            $this->assertEquals('Description of a blog post NO 1', $response->description);
+
+            return true;
+        })->andReturnSelf();
+        $mock->shouldReceive('setStatusCode')->with(200)->andReturnSelf();
+        $mock->shouldReceive('send');
+
+        $response = $this->actingAs($user)->postJson('api/dashboard/blogs/1/restore', []);
+        $response->assertStatus(200);
+    }
+
+    public function testDashboardStoreValidate()
+    {
+        $user = User::first();
+        $response = $this->actingAs($user)->postJson('api/dashboard/blogs', [
+        ]);
+        $response->assertStatus(422);
+        $content = json_decode($response->getContent(), true);
+
+        $this->assertArrayHasKey('errors', $content);
+        $this->assertArrayHasKey('title', $content['errors']);
+        $this->assertArrayHasKey('description', $content['errors']);
+    }
+
     public function testFetchResourceNotFound()
     {
         $response = $this->getJson('api/blogs/404');
         $response->assertStatus(404);
+    }
+
+    public function testNoModel()
+    {
+        $response = $this->postJson('api/no-model', []);
+        $this->assertInstanceOf(MissingModelException::class, $response->exception);
+    }
+
+    public function testNoEvent()
+    {
+        $response = $this->postJson('api/no-event', []);
+        $this->assertInstanceOf(MissingEventException::class, $response->exception);
+    }
+
+    public function testNoListener()
+    {
+        $response = $this->postJson('api/no-listener', []);
+        $this->assertInstanceOf(MissingListenerException::class, $response->exception);
     }
 
     public function tearDown(): void
@@ -292,8 +395,12 @@ class ControllerTest extends TestCase
 
         $app['router']->resource('api/blogs', '\TestApp\Http\Controllers\BlogController');
         $app['router']->resource('api/does-not-work', '\TestApp\Http\Controllers\DoesNotWork');
+        $app['router']->resource('api/no-model', '\TestApp\Http\Controllers\NoModelController');
+        $app['router']->resource('api/no-event', '\TestApp\Http\Controllers\NoEventController');
+        $app['router']->resource('api/no-listener', '\TestApp\Http\Controllers\NoListenerController');
 
         $app['router']->group(['prefix' => 'api/dashboard', 'middleware' => 'auth'], function ($group) use ($app) {
+            $group->post('blogs/{blog}/restore', '\TestApp\Http\Controllers\BlogController@Restore');
             $group->resource('blogs', '\TestApp\Http\Controllers\BlogController');
         });
     }

@@ -39,7 +39,7 @@ class BaseBlogEvent extends CrudEvent
      */
     public static function fromPayload($id, string $model, array $payload)
     {
-        return new self(
+        return new static(
             null,
             $model,
             $payload['title'],

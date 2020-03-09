@@ -2,6 +2,7 @@
 
 namespace LemonCMS\LaravelCrud\Listeners;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -41,10 +42,18 @@ abstract class CrudListener
      * @var Model
      */
     protected $entity = null;
+    /**
+     * @var bool
+     */
+    protected $delete = false;
+    /**
+     * @var bool
+     */
+    protected $restore = false;
 
     /**
      * CrudListener constructor.
-     * @param CrudRequest $request
+     * @param Request $request
      * @param Response $response
      */
     public function __construct(Request $request, Response $response)
@@ -57,7 +66,7 @@ abstract class CrudListener
     /**
      * @param AbstractCrudEvent $event
      */
-    public function init(AbstractCrudEvent $event)
+    public function process(AbstractCrudEvent $event)
     {
         $this->event = $event;
 
@@ -76,7 +85,14 @@ abstract class CrudListener
 
             return;
         }
-        $this->entity = call_user_func([$this->model, $this->resourceLoader], $event->getId(), $this->request, true)->first();
+
+        $callback = function (Builder $query) {
+            if (true === $this->restore) {
+                $query->onlyTrashed();
+            }
+        };
+
+        $this->entity = call_user_func([$this->model, $this->resourceLoader], $event->getId(), $this->request, $callback)->first();
 
         $this->run();
         $this->logEvent();
@@ -86,6 +102,30 @@ abstract class CrudListener
     {
         if (is_callable([$this, 'beforeRun'])) {
             call_user_func([$this, 'beforeRun']);
+        }
+
+        if ($this->delete === true) {
+            $this->entity->delete();
+            if (is_callable([$this, 'afterDelete'])) {
+                Log::debug('Running  afterDelete');
+                call_user_func([$this, 'afterDelete']);
+                Log::debug('Finished  afterDelete');
+            }
+            $this->response($this->entity, 200);
+
+            return;
+        }
+
+        if ($this->restore === true) {
+            $this->entity->restore();
+            if (is_callable([$this, 'afterRestore'])) {
+                Log::debug('Running  afterRestore');
+                call_user_func([$this, 'afterRestore']);
+                Log::debug('Finished  afterRestore');
+            }
+            $this->response($this->entity, 200);
+
+            return;
         }
 
         Log::debug('Listener: '.__CLASS__);
@@ -101,11 +141,11 @@ abstract class CrudListener
             Log::debug('Entity is dirty: '.$this->entity->isDirty());
         }
 
-        Log::debug('Searching  afterRun: '.$method);
+        Log::debug('Searching  afterRun: ');
         if (is_callable([$this, 'afterRun'])) {
-            Log::debug('Found  afterRun: '.$method);
+            Log::debug('Found  afterRun: ');
             call_user_func([$this, 'afterRun']);
-            Log::debug('Finished  afterRun: '.$method);
+            Log::debug('Finished  afterRun: ');
         }
 
         if ($this->entity->isClean()) {
@@ -114,28 +154,29 @@ abstract class CrudListener
 
             return;
         }
-        Log::debug('Searching  beforeSave: '.$method);
+
+        Log::debug('Searching  beforeSave: ');
         if (is_callable([$this, 'beforeSave'])) {
-            Log::debug('Running  beforeSave: '.$method);
+            Log::debug('Running  beforeSave: ');
             call_user_func([$this, 'beforeSave']);
-            Log::debug('Finished  beforeSave: '.$method);
+            Log::debug('Finished  beforeSave: ');
         }
 
         if ($this->entity->save()) {
             Log::debug('Entity is saved id: '.$this->entity->id);
-            Log::debug('Searching  afterSave: '.$method);
+            Log::debug('Searching  afterSave: ');
             if (is_callable([$this, 'afterSave'])) {
-                Log::debug('Running  afterSave: '.$method);
+                Log::debug('Running  afterSave: ');
                 call_user_func([$this, 'afterSave']);
-                Log::debug('Finished  afterSave: '.$method);
+                Log::debug('Finished  afterSave: ');
             }
             $this->response($this->entity, 201);
         } else {
-            Log::debug('Searching  afterSaveFailed: '.$method);
+            Log::debug('Searching  afterSaveFailed: ');
             if (is_callable([$this, 'afterSaveFailed'])) {
-                Log::debug('Running  afterSaveFailed: '.$method);
+                Log::debug('Running  afterSaveFailed: ');
                 call_user_func([$this, 'afterSaveFailed']);
-                Log::debug('Finished  afterSaveFailed: '.$method);
+                Log::debug('Finished  afterSaveFailed: ');
             }
             Log::error('Listener: '.__CLASS__);
             Log::error('Model: '.$this->model);
@@ -158,7 +199,7 @@ abstract class CrudListener
     /**
      * @param AbstractCrudEvent|null $event
      */
-    public function logEvent(AbstractCrudEvent $event = null)
+    public function logEvent(AbstractCrudEvent $event = null): void
     {
         if (null === $event && $this->event) {
             event(new CrudEventLogger(get_class($this->event), $this->event->jsonSerialize() + ['id' => $this->entity->id]));
@@ -167,5 +208,21 @@ abstract class CrudListener
         }
 
         event(new CrudEventLogger(get_class($event), $event->jsonSerialize()));
+    }
+
+    /**
+     * @param bool $value
+     */
+    protected function setDelete(bool $value = false): void
+    {
+        $this->delete = $value;
+    }
+
+    /**
+     * @param bool $value
+     */
+    protected function setRestore(bool $value = false): void
+    {
+        $this->restore = $value;
     }
 }

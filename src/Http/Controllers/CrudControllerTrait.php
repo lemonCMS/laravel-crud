@@ -15,49 +15,44 @@ use LemonCMS\LaravelCrud\Exceptions\WrongControllerNameException;
 
 trait CrudControllerTrait
 {
+    public $model = null;
     protected $namespacePrefix = [];
-
     protected $suffixes;
-
     protected $namespaces = [
     ];
-
     protected $events = [
     ];
-
     protected $listeners = [
     ];
-
     protected $requests = [
     ];
-
-    protected $model = null;
 
     public function __construct()
     {
         $this->namespacePrefix = config('crud.namespacePrefix', []) + [
-            'controllers' => 'App\Http\Controllers',
-            'events' => 'App\Events',
-            'models' => 'App\Models',
-            'policies' => 'App\Models\Policies',
-            'listeners' => 'App\Listeners',
-            'requests' => 'App\Http\Requests',
-        ];
+                'controllers' => 'App\Http\Controllers',
+                'events' => 'App\Events',
+                'models' => 'App\Models',
+                'policies' => 'App\Models\Policies',
+                'listeners' => 'App\Listeners',
+                'requests' => 'App\Http\Requests',
+            ];
 
         $this->suffixes = config('crud.suffixes', []) + [
-            'controller' => 'Controller',
-            'event' => 'Event',
-            'model' => null,
-            'policy' => 'Policy',
-            'listener' => 'Listener',
-            'request' => 'Request',
-        ];
+                'controller' => 'Controller',
+                'event' => 'Event',
+                'model' => null,
+                'policy' => 'Policy',
+                'listener' => 'Listener',
+                'request' => 'Request',
+            ];
 
         $this->tryExtractNameFromClass();
     }
 
     private function tryExtractNameFromClass()
     {
+        $this->initCrud();
         $bindingClassName = (last(explode('\\', get_called_class())));
         if (! preg_match('/(.*)(Controller)$/i', $bindingClassName, $matches)) {
             throw new WrongControllerNameException(
@@ -106,6 +101,10 @@ trait CrudControllerTrait
         if (! isset($this->policy) || null === $this->policy) {
             $this->policy = $this->combine('policies', $resource);
         }
+    }
+
+    protected function initCrud()
+    {
     }
 
     /**
@@ -171,6 +170,14 @@ trait CrudControllerTrait
     }
 
     /**
+     * @return bool
+     */
+    protected function usePolicies()
+    {
+        return true;
+    }
+
+    /**
      * @param Request $request
      * @param string $event
      * @return bool
@@ -209,14 +216,6 @@ trait CrudControllerTrait
     }
 
     /**
-     * @return bool
-     */
-    protected function usePolicies()
-    {
-        return true;
-    }
-
-    /**
      * @return \Closure
      */
     protected function getCallback()
@@ -233,45 +232,6 @@ trait CrudControllerTrait
     protected function withQuery(Builder $query)
     {
         return $query;
-    }
-
-    /**
-     * @param Request $request
-     * @throws MissingEventException
-     * @throws MissingListenerException
-     * @throws ValidationException
-     */
-    public function store(Request $request)
-    {
-        $this->runPolicy('create');
-
-        $this->_validate($request, 'store');
-
-        $this->_store($request);
-    }
-
-    /**
-     * @param Request $request
-     * @throws MissingEventException
-     * @throws MissingListenerException
-     */
-    protected function _store(Request $request)
-    {
-        if (! is_callable([$this->events['store'], 'fromPayload'])) {
-            throw new MissingEventException($this->events['store']);
-        }
-
-        if (! is_callable([$this->listeners['store'], 'handle'])) {
-            throw new MissingListenerException($this->listeners['store']);
-        }
-
-        event(call_user_func([$this->events['store'], 'fromPayload'],
-            null,
-            $this->model,
-            $request->all(),
-            $request->user(),
-            $this->getCallback()
-        ));
     }
 
     /**
@@ -297,6 +257,38 @@ trait CrudControllerTrait
 
     /**
      * @param Request $request
+     * @throws MissingEventException
+     * @throws MissingListenerException
+     * @throws ValidationException
+     */
+    public function store(Request $request)
+    {
+        $this->runPolicy('create');
+
+        $this->_validate($request, 'store');
+
+        $this->_store($request);
+    }
+
+    /**
+     * @param Request $request
+     * @throws MissingEventException
+     * @throws MissingListenerException
+     */
+    protected function _store(Request $request)
+    {
+        $this->checkPipeline('store');
+
+        event(call_user_func([$this->events['store'], 'fromPayload'],
+            null,
+            $this->model,
+            $request->all(),
+            $request->user()
+        ));
+    }
+
+    /**
+     * @param Request $request
      * @param int|string $id
      * @throws MissingEventException
      * @throws MissingListenerException
@@ -304,7 +296,13 @@ trait CrudControllerTrait
      */
     public function update(Request $request, $id)
     {
-        $record = call_user_func([$this->model, 'viewResource'], $id, $request, $this->getCallback());
+        $record = call_user_func(
+            [$this->model, 'resource'],
+            $id,
+            $request,
+            $this->getCallback()
+        )->firstOrFail();
+
         $this->runPolicy('update', $record);
 
         $this->_validate($request, 'update');
@@ -319,15 +317,14 @@ trait CrudControllerTrait
      */
     protected function _update(Request $request, $id)
     {
-        if (! is_callable([$this->events['update'], 'fromPayload'])) {
-            throw new MissingEventException($this->events['update']);
-        }
+        $this->checkPipeline('update');
 
-        if (! is_callable([$this->listeners['update'], 'handle'])) {
-            throw new MissingListenerException($this->listeners['update']);
-        }
-
-        event(call_user_func([$this->events['update'], 'fromPayload'], $id, $this->model, $request->all()));
+        event(call_user_func(
+            [$this->events['update'], 'fromPayload'],
+            $id,
+            $this->model,
+            $request->all()
+        ));
     }
 
     /**
@@ -339,7 +336,12 @@ trait CrudControllerTrait
      */
     public function destroy(Request $request, $id)
     {
-        $record = call_user_func([$this->model, 'viewResource'], $id, $request, $this->getCallback());
+        $record = call_user_func(
+            [$this->model, 'resource'],
+            $id,
+            $request,
+            $this->getCallback()
+        )->firstOrFail();
         $this->runPolicy('delete', $record);
 
         $this->_validate($request, 'destroy');
@@ -354,13 +356,7 @@ trait CrudControllerTrait
      */
     protected function _destroy(Request $request, $id)
     {
-        if (! is_callable([$this->events['destroy'], 'fromPayload'])) {
-            throw new MissingEventException($this->events['destroy']);
-        }
-
-        if (! is_callable([$this->listeners['destroy'], 'handle'])) {
-            throw new MissingListenerException($this->listeners['destroy']);
-        }
+        $this->checkPipeline('destroy');
 
         event(call_user_func([$this->events['destroy'], 'fromPayload'], $id, $this->model, $request->all(), $this->getCallback()));
     }
@@ -373,11 +369,17 @@ trait CrudControllerTrait
     public function restore(Request $request, $id)
     {
         $callback = function (Builder $query) {
-            $query->withTrashed();
+            $query->onlyTrashed();
             $this->getCallback()($query);
         };
 
-        $record = call_user_func([$this->model, 'viewResource'], $id, $request, $callback);
+        $record = call_user_func(
+            [$this->model, 'resource'],
+            $id,
+            $request,
+            $callback
+        )->firstOrFail();
+
         $this->runPolicy('restore', $record);
 
         $this->_validate($request, 'restore');
@@ -391,6 +393,29 @@ trait CrudControllerTrait
      */
     protected function _restore(Request $request, $id)
     {
-        event(call_user_func([$this->events['destroy'], 'fromPayload'], $id, $this->model, $request->all(), $this->getCallback()));
+        event(call_user_func([$this->events['restore'], 'fromPayload'], $id, $this->model, $request->all(), $this->getCallback()));
+    }
+
+    /**
+     * Check if events and listeners are callable.
+     *
+     * @param $type
+     * @throws MissingEventException
+     * @throws MissingListenerException
+     */
+    private function checkPipeline($type)
+    {
+        if (! is_callable([$this->events[$type], 'fromPayload'])) {
+            throw new MissingEventException($this->events[$type]);
+        }
+
+        if (! is_callable([$this->listeners[$type], 'handle'])) {
+            throw new MissingListenerException($this->listeners[$type]);
+        }
+    }
+
+    protected function setModel(string $model)
+    {
+        $this->model = $model;
     }
 }

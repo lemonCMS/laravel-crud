@@ -18,6 +18,7 @@ class Blogs extends Migration
             $table->string('title')->index();
             $table->longText('description');
             $table->timestamps();
+            $table->softDeletes();
         });
 
         \DB::table('blogs')->insert([

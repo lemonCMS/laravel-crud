@@ -17,7 +17,7 @@ class BlogStoreListener extends CrudListener
      */
     public function handle(BlogStoreEvent $event)
     {
-        $this->init($event);
+        $this->process($event);
     }
 
     public function beforeRun()
@@ -29,10 +29,5 @@ class BlogStoreListener extends CrudListener
     public function afterSave()
     {
         // $this->entity->users()->attach(\Request::user()->id);
-    }
-
-    public function subscribe($events)
-    {
-        die('SUBSCRIBE');
     }
 }

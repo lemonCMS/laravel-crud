@@ -48,7 +48,7 @@ class CrudEvent extends AbstractCrudEvent
 
     public static function fromPayload($id, string $model, array $payload)
     {
-        return new self($id, $model);
+        return new static($id, $model);
     }
 
     public static function rules(Request $request): array
