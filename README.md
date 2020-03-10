@@ -151,11 +151,11 @@ class BaseBlogEvent extends CrudEvent
     /**
      * @var string
      */
-    public $title;
+    private $title;
     /**
      * @var string
      */
-    public $description;
+    private $description;
 
     /**
      * AccountUpdate constructor.

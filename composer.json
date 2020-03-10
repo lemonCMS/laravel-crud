@@ -12,12 +12,12 @@
     "require": {},
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^2.16",
-        "orchestra/testbench": "^4.6",
-        "laravel/framework": "^6.16",
+        "orchestra/testbench": "^5.0.2",
+        "laravel/framework": "^7.0.8",
         "guzzlehttp/guzzle": "^6.5",
         "phpunit/phpunit": "^8.5",
         "mockery/mockery": "^1.3",
-        "facade/ignition": "^1.16"
+        "facade/ignition": "^2.0.1"
     },
     "extra": {
         "laravel": {
@@ -32,8 +32,7 @@
     "autoload": {
         "psr-4": {
             "LemonCMS\\LaravelCrud\\": "src",
-            "TestApp\\": "tests\\TestApp",
-            "App\\": "tests\\App"
+            "TestApp\\": "tests\\TestApp"
         }
     },
     "scripts": {
