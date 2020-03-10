@@ -23,6 +23,9 @@
             <directory suffix=".php">./src</directory>
             <exclude>
                 <directory>./src/resources</directory>
+                <directory>./src/config</directory>
+                <directory>./src/database</directory>
+                <directory>./src/Commands</directory>
             </exclude>
         </whitelist>
     </filter>

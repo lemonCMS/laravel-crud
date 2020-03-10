@@ -17,7 +17,8 @@
         "guzzlehttp/guzzle": "^6.5",
         "phpunit/phpunit": "^8.5",
         "mockery/mockery": "^1.3",
-        "facade/ignition": "^1.16"
+        "facade/ignition": "^1.16",
+        "psalm/phar": "^3.9"
     },
     "extra": {
         "laravel": {
