@@ -1,3 +1,5 @@
+![build passes](https://api.travis-ci.org/lemonCMS/laravel-crud.svg?branch=master)
+
 # -------- WORK IN PROGRESS --------
 
 # CRUD & Event logging for laravel 6/7
