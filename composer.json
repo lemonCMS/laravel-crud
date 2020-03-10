@@ -5,7 +5,7 @@
     "license": "MIT",
     "authors": [
         {
-            "name": "raymond",
+            "name": "Raymond van Vuuren",
             "email": "rsvvuuren@hotmail.com"
         }
     ],
@@ -25,7 +25,7 @@
                 "LemonCMS\\LaravelCrud\\ServiceProvider"
             ],
             "aliases": {
-                "Debugbar": "LemonCMS\\LaravelCrud\\Facade"
+                "LaravelCrud": "LemonCMS\\LaravelCrud\\Facade"
             }
         }
     },
