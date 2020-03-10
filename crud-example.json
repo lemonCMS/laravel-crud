@@ -1,0 +1,59 @@
+{
+  "routes": {
+    "oauth": {
+      "type": "namespace",
+      "namespace": "Api\\OAuth",
+      "prefix": "oauth",
+      "routes": {
+        "register": {
+          "path": "register",
+          "type": "action",
+          "method": "post",
+          "action": "AuthenticateController@Register"
+        },
+        "authenticate": {
+          "path": "authenticate",
+          "type": "action",
+          "method": "post",
+          "action": "AuthenticateController@Authenticate"
+        },
+        "refresh-token": {
+          "path": "refresh-token",
+          "type": "action",
+          "method": "post",
+          "action": "AuthenticateController@RefreshToken",
+          "middleware": [
+            "throttle:60,1"
+          ]
+        }
+      }
+    },
+    "users": {
+      "type": "resource",
+      "controller": "Api\\UsersController",
+      "mitigation": "create",
+      "options": {
+        "only": [
+          "index",
+          "show"
+        ]
+      },
+      "path": "users",
+      "middleware": [
+        "guest"
+      ]
+    },
+    "notify": {
+      "action": "UserController@Notify",
+      "method": "post",
+      "path": "users/{id}/notify",
+      "middleware": ["auth:api"]
+    },
+    "disable-all": {
+      "action": "UserController@DisableAll",
+      "method": "post",
+      "path": "users/{id}/disable-all",
+      "middleware": ["auth:api"]
+    }
+  }
+}

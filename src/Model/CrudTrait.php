@@ -3,7 +3,6 @@
 namespace LemonCMS\LaravelCrud\Model;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 
 trait CrudTrait
@@ -129,6 +128,8 @@ trait CrudTrait
     }
 
     /**
+     * Load and send resource
+     *
      * @param Builder $query
      * @param int|string $modelId
      * @param Request $request
@@ -143,6 +144,8 @@ trait CrudTrait
     }
 
     /**
+     * Load the resource
+     *
      * @param Builder $query
      * @param int|string $modelId
      * @param Request $request
@@ -160,18 +163,18 @@ trait CrudTrait
         return $query;
     }
 
-    /**
-     * @param Model $model
-     * @param string|null $includes
-     * @return Model
-     */
-    private function runLoadMissing(Model $model, string $includes = null): Model
-    {
-        $list = $this->parseInclude($includes);
-        if ($list) {
-            $model->loadMissing($list);
-        }
-
-        return $model;
-    }
+//    /**
+//     * @param Model $model
+//     * @param string|null $includes
+//     * @return Model
+//     */
+//    private function runLoadMissing(Model $model, string $includes = null): Model
+//    {
+//        $list = $this->parseInclude($includes);
+//        if ($list) {
+//            $model->loadMissing($list);
+//        }
+//
+//        return $model;
+//    }
 }
