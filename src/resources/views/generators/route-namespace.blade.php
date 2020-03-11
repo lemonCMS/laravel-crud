@@ -3,5 +3,5 @@ Route::namespace('{{$namespace['namespace']}}')
 ->prefix('{{$namespace['prefix']}}')
 @endif
 ->group(function () {
-    @include('generators.route-case', ['routes' => $namespace['routes'] ?? []])
+    @include('crud::generators.route-case', ['routes' => $namespace['routes'] ?? []])
 });

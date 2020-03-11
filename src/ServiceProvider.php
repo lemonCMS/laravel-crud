@@ -12,8 +12,9 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
     {
         $this->publishes([
             __DIR__.'config/crud.php' => config_path('crud.php'),
-            __DIR__.'resources/views' => base_path('resources/views/lemoncms/laravelcrud'),
         ]);
+
+        $this->loadViewsFrom(__DIR__.'/resources/views', 'crud');
 
         if ($this->app->runningInConsole()) {
             $this->loadMigrationsFrom(__DIR__.'/database/migrations');

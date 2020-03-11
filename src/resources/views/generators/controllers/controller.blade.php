@@ -9,9 +9,9 @@ Class {{$controller[0]['meta']['controller']}} extends Controller
     use CrudControllerTrait;
 
     @foreach($controller as $entry)
-        @includeWhen('action' === ($entry['type'] ?? false), 'generators.controllers.action', ['action' => $entry])
+        @includeWhen('action' === ($entry['type'] ?? false), 'crud::generators.controllers.action', ['action' => $entry])
         @foreach(($entry['actions'] ?? []) as $action)
-            @include('generators.controllers.action', ['action' => $action])
+            @include('crud::generators.controllers.action', ['action' => $action])
         @endforeach
     @endforeach
 

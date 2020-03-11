@@ -10,7 +10,7 @@ Route::group(
 @endforeach
 @endif]
 ,function() {
-@include('generators.route-case', ['routes' => $group['routes'] ?? []])
+@include('crud::generators.route-case', ['routes' => $group['routes'] ?? []])
 })@if ($action['middleware'] ?? false)
 ->middleware({!! json_encode($action['middleware']) !!})
 @endif;

@@ -44,13 +44,13 @@ class CrudController extends Command
     {
         foreach ($this->controllers as $controller) {
             $meta = $controller[0]['meta'];
-            $template = View::make('generators.controllers.controller', ['controller' => $controller]);
+            $template = View::make('crud::generators.controllers.controller', ['controller' => $controller]);
             $path = base_path(implode(DIRECTORY_SEPARATOR, ['app', 'Http', 'Controllers', $meta['path']]));
 
             if (! \File::isDirectory($path)) {
                 \File::makeDirectory($path, 493, true);
             }
-            \File::put(implode(DIRECTORY_SEPARATOR, [$path, $meta['controller'].'-test.php']), "<?php\r\n".$template);
+            \File::put(implode(DIRECTORY_SEPARATOR, [$path, $meta['controller'].'.php']), "<?php\r\n".$template);
         }
     }
 }

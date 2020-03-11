@@ -66,7 +66,7 @@ class CrudEvents extends Command
 
     private function renderEvent(string $type, array $event)
     {
-        $template = View::make('generators.events.'.$type, $event);
+        $template = View::make('crud::generators.events.'.$type, $event);
         $path = base_path(implode(DIRECTORY_SEPARATOR, ['app', \Str::Studly(\Str::plural($type)), $event['path']]));
         if ($type === 'model') {
             $path = base_path(implode(DIRECTORY_SEPARATOR, ['app', 'Models']));

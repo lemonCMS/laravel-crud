@@ -26,5 +26,5 @@ jobs:
     - name: Run test suite
       run: vendor/bin/phpunit
 
-    - name: Run coverage 80%
+    - name: Run coverage threshold >= 80%
       run: php coverage-checker.php ./clover.xml 80

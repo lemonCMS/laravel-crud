@@ -15,7 +15,7 @@ class Blog extends Model
     /**
      * Provided includes can be requested through the comma separated include param
      * E.g.
-     * /api/blogs?include=tags
+     * /api/blogs?include=tags.
      *
      * @var array
      */
@@ -26,7 +26,7 @@ class Blog extends Model
     /**
      * Fields that can be used to sort by through the order_field and order_dir param
      * E.g.
-     * /api/blogs?include=tags&order_field=created_at&order_dir=desc
+     * /api/blogs?include=tags&order_field=created_at&order_dir=desc.
      *
      * @var array
      */
@@ -34,11 +34,10 @@ class Blog extends Model
         'id', 'title', 'created_at', 'modified_at',
     ];
 
-
     /**
      * Define fields where a full matched can be performed on
      * E.g.
-     * /api/blogs?id=1
+     * /api/blogs?id=1.
      *
      * Or provide a callback to create a custom filter
      * E.g.
@@ -57,7 +56,7 @@ class Blog extends Model
     }
 
     /**
-     * Just a default relation
+     * Just a default relation.
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function tags()

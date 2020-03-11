@@ -1,4 +1,5 @@
 ![build passes](https://api.travis-ci.org/lemonCMS/laravel-crud.svg?branch=master)
+![PHP Composer](https://github.com/lemonCMS/laravel-crud/workflows/PHP%20Composer/badge.svg)
 
 # -------- WORK IN PROGRESS --------
 
@@ -279,5 +280,6 @@ class BlogStoreListener extends CrudListener
 #Todo
  - Testing policies
  - Implement Collection support
+ - implement caching
  
 

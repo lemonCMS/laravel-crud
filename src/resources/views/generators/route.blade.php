@@ -12,5 +12,5 @@ use Illuminate\Support\Facades\Route;
 */
 
 @foreach($data as $prefix => $routes)
-@include('generators.route-case', ['routes' => $routes])
+@include('crud::generators.route-case', ['routes' => $routes])
 @endforeach

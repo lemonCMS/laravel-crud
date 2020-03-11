@@ -128,7 +128,7 @@ trait CrudTrait
     }
 
     /**
-     * Load and send resource
+     * Load and send resource.
      *
      * @param Builder $query
      * @param int|string $modelId
@@ -144,7 +144,7 @@ trait CrudTrait
     }
 
     /**
-     * Load the resource
+     * Load the resource.
      *
      * @param Builder $query
      * @param int|string $modelId
