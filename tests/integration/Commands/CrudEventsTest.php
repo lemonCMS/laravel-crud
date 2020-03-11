@@ -54,9 +54,7 @@ JSON;
         File::deleteDirectory(implode(DIRECTORY_SEPARATOR, [$path, 'Listeners']));
         File::deleteDirectory(implode(DIRECTORY_SEPARATOR, [$path, 'Models']));
         File::deleteDirectory(implode(DIRECTORY_SEPARATOR, [$path, 'Policies']));
-
     }
-
 
     /** @test */
     public function testUnknownConfig()

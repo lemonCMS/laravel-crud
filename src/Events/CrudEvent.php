@@ -61,14 +61,14 @@ abstract class CrudEvent extends AbstractCrudEvent
         return [
             'id' => $this->getId(),
             'model' => $this->getModel(),
-            'payload' => $this->toPayload()
+            'payload' => $this->toPayload(),
         ];
     }
 
     public function toPayload(): array
     {
         return [
-            'id' => $this->getId()
+            'id' => $this->getId(),
         ];
     }
 }
