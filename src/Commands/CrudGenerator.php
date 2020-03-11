@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\File;
 
 class CrudGenerator extends Command
 {
+    use CrudCommandTrait;
+
     private $path;
     private $config;
 
@@ -17,10 +19,10 @@ class CrudGenerator extends Command
      * @var string
      */
     protected $signature = 'crud:generate 
-    {--all : Overwrite all existing files}
+    {--always : Overwrite all existing files}
     {--never : Never overwrite existing files}
     {--config= : Location of your custom config file}
-    {--path= : Path to write the api routes to}
+    {--output= : full pathname to write the api routes to}
     {--config= : Custom config file}';
 
     /**
@@ -41,27 +43,27 @@ class CrudGenerator extends Command
     }
 
     /**
-     * Execute the console command.
+     * Parse JSON and create api.php routes.
      *
-     * @return mixed
+     * @throws \Exception
      */
     public function handle()
     {
-        $this->config = $this->option('config') ?: base_path('.crud-specs.json');
+        $json = $this->loadConfig();
 
-        if (! File::exists($this->config)) {
-            throw new \Exception(new FileNotFoundException('File not found at ' . $this->config));
-        }
-        $data = File::get($this->config);
-        $json = json_decode($data, true);
         $routes = "<?php\r\n".\View::make('crud::generators.route', ['data' => $json]);
         $routes = preg_replace('/\t+/', ' ', $routes);
 
         // $routes = trim(preg_replace('/\s+/', ' ', $routes));
         $routes = str_replace([') ->', '; '], [')->', ";\r\n"], $routes);
 
-        $path = $this->option('path') ?: base_path('routes/api.php');
+        $output = $this->option('output') ?: base_path('routes/api.php');
 
-        \File::put($path, $routes);
+        if (\File::exists($output) && ! $this->getConfirmation($output)) {
+            $this->error('File already exists'.$output);
+
+            return;
+        }
+        \File::put($output, $routes);
     }
 }

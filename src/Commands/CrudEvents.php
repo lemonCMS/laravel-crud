@@ -14,7 +14,12 @@ class CrudEvents extends Command
      *
      * @var string
      */
-    protected $signature = 'crud:events';
+    protected $signature = 'crud:events
+        {--always : Overwrite all existing files}
+        {--never : Never overwrite existing files}
+        {--config= : Location of your custom config file}
+        {--path= : Path from where file should get stored}
+        {--config= : Custom config file}';
 
     /**
      * The console command description.
@@ -22,13 +27,6 @@ class CrudEvents extends Command
      * @var string
      */
     protected $description = 'Parse json and generate events and listeners.';
-
-    /**
-     * Permission to overwrite all existing files.
-     *
-     * @var bool
-     */
-    protected $allConfirmed = null;
 
     /**
      * Keep track of already handled files.
@@ -48,7 +46,7 @@ class CrudEvents extends Command
 
     public function handle()
     {
-        $json = json_decode(\File::get(app_path('/console/Commands/crud-specs.json')), true);
+        $json = $this->loadConfig();
         $this->parseJson($json['routes']);
         $this->parseEvents();
         $this->render();
@@ -67,22 +65,19 @@ class CrudEvents extends Command
     private function renderEvent(string $type, array $event)
     {
         $template = View::make('crud::generators.events.'.$type, $event);
-        $path = base_path(implode(DIRECTORY_SEPARATOR, ['app', \Str::Studly(\Str::plural($type)), $event['path']]));
+        $path = $this->getPath([\Str::Studly(\Str::plural($type)), $event['path']]);
+
         if ($type === 'model') {
-            $path = base_path(implode(DIRECTORY_SEPARATOR, ['app', 'Models']));
+            $path = $this->getPath('Models');
         }
 
         if ($type === 'policy') {
-            $path = base_path(implode(DIRECTORY_SEPARATOR, ['app', 'Models', 'Policies']));
-        }
-
-        if (! \File::isDirectory($path)) {
-            \File::makeDirectory($path, 493, true);
+            $path = $this->getPath(['Models', 'Policies']);
         }
 
         $file = implode(DIRECTORY_SEPARATOR, [
             $path,
-            $event[$type].'-test.php',
+            $event[$type].'.php',
         ]);
 
         if (in_array($file, $this->keepTrack)) {
@@ -101,37 +96,5 @@ class CrudEvents extends Command
 
         \File::put($file, "<?php\r\n".$template->render());
         $this->info($type.' created: '.$file);
-    }
-
-    private function getConfirmation($file)
-    {
-        if (true === $this->allConfirmed) {
-            return true;
-        }
-
-        if (false === $this->allConfirmed) {
-            return false;
-        }
-
-        do {
-            $this->info('File: "'.$file.'" already exists');
-            $answer = $this->anticipate('overwrite? (never, no, yes, all)',
-                ['never', 'no', 'yes', 'all'], 'no');
-            $answer = strtolower($answer);
-        } while (! in_array($answer, ['never', 'no', 'yes', 'all', 'y', 'n', 'a']));
-
-        if (in_array($answer, ['all', 'a'])) {
-            $this->allConfirmed = true;
-
-            return true;
-        }
-
-        if ('never' === $answer) {
-            $this->allConfirmed = false;
-
-            return false;
-        }
-
-        return in_array($answer, ['yes', 'y']);
     }
 }

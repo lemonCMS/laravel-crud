@@ -18,6 +18,7 @@ return [
         'model' => 'Table',
         'listener' => 'Listener',
         'request' => 'Request',
+        'policy' => 'Policy',
     ],
 
     'models' => [

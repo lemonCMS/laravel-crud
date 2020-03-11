@@ -1,6 +1,6 @@
 {
     "name": "lemoncms/laravel-crud",
-    "description": "rest api crud plugin for laravel 6",
+    "description": "rest api crud plugin for laravel 6/7",
     "type": "library",
     "license": "MIT",
     "authors": [

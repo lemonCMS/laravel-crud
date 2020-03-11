@@ -2,6 +2,7 @@
 
 namespace LemonCMS\LaravelCrud\Commands;
 
+use File;
 use Illuminate\Console\Command;
 use View;
 
@@ -14,7 +15,12 @@ class CrudController extends Command
      *
      * @var string
      */
-    protected $signature = 'crud:controller';
+    protected $signature = 'crud:controller
+        {--always : Overwrite all existing files}
+        {--never : Never overwrite existing files}
+        {--config= : Location of your custom config file}
+        {--path= : Path from where file should get stored}
+        {--config= : Custom config file}';
 
     /**
      * The console command description.
@@ -35,7 +41,7 @@ class CrudController extends Command
 
     public function handle()
     {
-        $json = json_decode(\File::get(app_path('/console/Commands/crud-specs.json')), true);
+        $json = $this->loadConfig();
         $this->parseJson($json['routes']);
         $this->renderControllers();
     }
@@ -45,12 +51,11 @@ class CrudController extends Command
         foreach ($this->controllers as $controller) {
             $meta = $controller[0]['meta'];
             $template = View::make('crud::generators.controllers.controller', ['controller' => $controller]);
-            $path = base_path(implode(DIRECTORY_SEPARATOR, ['app', 'Http', 'Controllers', $meta['path']]));
-
-            if (! \File::isDirectory($path)) {
-                \File::makeDirectory($path, 493, true);
+            $path = $this->getPath(['Http', 'Controllers', $meta['path']]);
+            $file = implode(DIRECTORY_SEPARATOR, [$path, $meta['controller'].'.php']);
+            if ($this->getConfirmation($file)) {
+                File::put($file, "<?php\r\n".$template);
             }
-            \File::put(implode(DIRECTORY_SEPARATOR, [$path, $meta['controller'].'.php']), "<?php\r\n".$template);
         }
     }
 }

@@ -13,14 +13,9 @@ $controller = $resource['controller'] ?? \Str::studly(\Str::plural($route)) . 'C
     @endforeach
 @endif
 
-Route::resource('{{\Str::kebab(\Str::plural($resource['path'] ?? $route))}}', '{{$controller}}'@if($resource['options'] ?? false),[
+Route::resource('{{\Str::kebab(\Str::plural($resource['path'] ?? $route))}}', '{{$controller}}')@if($resource['options'] ?? false)
 @foreach($resource['options'] as $name => $option)
-    '{{$name}}' =>
-    @if (is_array($option))
-        @php(print json_encode($option))
-    @else
-        '{{$option}}'
-    @endif
+    ->{{$name}}(@if (is_array($option))@php(print json_encode($option))@else'{{$option}}'@endif)
 @endforeach
-]@endif);
+@endif;
 
