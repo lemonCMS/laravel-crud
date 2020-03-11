@@ -45,12 +45,13 @@ JSON;
 
         $this->artisan('crud:generate', [
             '--output' => $path,
-            '--always' => true
+            '--always' => true,
         ]);
 
-        $this->fileExists($path);
-//        $content = File::get($path);
+        $this->assertFileExists($path);
+        File::delete($path);
 
+//        $content = File::get($path);
 //        preg_match("/^(.*)\:\:(.*)\(\'(.*)\',\s\'(.*)\'\)/m", $content, $matches);
 //        $this->assertEquals('Route', $matches[1]);
 //        $this->assertEquals('resource', $matches[2]);
@@ -96,10 +97,9 @@ JSON;
 
         $this->artisan('crud:generate', [
             '--output' => $path,
-            '--always' => true
+            '--always' => true,
         ]);
     }
-
 
     protected function getPackageProviders($app)
     {

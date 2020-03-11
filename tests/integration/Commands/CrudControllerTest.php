@@ -54,7 +54,7 @@ JSON;
 
         preg_match("/use\s(CrudControllerTrait);/m", $content, $matches);
         $this->assertEquals('CrudControllerTrait', $matches[1]);
-        Storage::deleteDirectory(implode(DIRECTORY_SEPARATOR, [$path, 'Http']));
+        File::deleteDirectory(implode(DIRECTORY_SEPARATOR, [$path, 'Http']));
     }
 
     /** @test */

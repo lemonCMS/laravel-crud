@@ -44,19 +44,19 @@ JSON;
             '--path' => $path,
             '--always' => true,
         ]);
-
-        // $file = implode(DIRECTORY_SEPARATOR, [$path, 'Http', 'Controllers', 'Api', 'UsersController.php']);
-        // $this->fileExists($file);
-        // $content = File::get($file);
-
-//        preg_match("/^Class\s(.*)\sextends\sController/m", $content, $matches);
-//        $this->assertEquals('UsersController', $matches[1]);
-//
-//        preg_match("/use\s(CrudControllerTrait);/m", $content, $matches);
-//        $this->assertEquals('CrudControllerTrait', $matches[1]);
-//
-//        Storage::deleteDirectory(implode(DIRECTORY_SEPARATOR, [$path, 'Http']));
     }
+
+    public function tearDown(): void
+    {
+        parent::tearDown();
+        $path = (realpath(__DIR__.'/../../test-data'));
+        File::deleteDirectory(implode(DIRECTORY_SEPARATOR, [$path, 'Events']));
+        File::deleteDirectory(implode(DIRECTORY_SEPARATOR, [$path, 'Listeners']));
+        File::deleteDirectory(implode(DIRECTORY_SEPARATOR, [$path, 'Models']));
+        File::deleteDirectory(implode(DIRECTORY_SEPARATOR, [$path, 'Policies']));
+
+    }
+
 
     /** @test */
     public function testUnknownConfig()
