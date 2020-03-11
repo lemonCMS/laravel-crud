@@ -26,7 +26,7 @@ class CrudEvents extends Command
      *
      * @var string
      */
-    protected $description = 'Parse json and generate events and listeners.';
+    protected $description = 'Parse json and generate events and listeners';
 
     /**
      * Keep track of already handled files.

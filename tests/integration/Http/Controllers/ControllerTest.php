@@ -195,7 +195,7 @@ class ControllerTest extends TestCase
         Response::shouldReceive('setStatusCode')->once()->with(200)->andReturnSelf();
         Response::shouldReceive('send')->once();
 
-        $response = $this->getJson('api/blogs/1?include=tags');
+        $response = $this->getJson('api/blogs/1?include=tags&order_field=title&order_dir=desc');
     }
 
     public function testFetchResourceUnknownInclude()
@@ -274,7 +274,6 @@ class ControllerTest extends TestCase
             'title' => 'Best blog in the world!',
             'description' => 'The Netherlands second',
         ]);
-
         $response->assertStatus(200);
     }
 

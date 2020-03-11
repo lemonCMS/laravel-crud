@@ -7,7 +7,7 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Http\Request;
 use Illuminate\Queue\SerializesModels;
 
-class CrudEvent extends AbstractCrudEvent
+abstract class CrudEvent extends AbstractCrudEvent
 {
     use Dispatchable;
     use InteractsWithSockets;
@@ -61,6 +61,14 @@ class CrudEvent extends AbstractCrudEvent
         return [
             'id' => $this->getId(),
             'model' => $this->getModel(),
+            'payload' => $this->toPayload()
+        ];
+    }
+
+    public function toPayload(): array
+    {
+        return [
+            'id' => $this->getId()
         ];
     }
 }

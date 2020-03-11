@@ -27,7 +27,7 @@ class CrudController extends Command
      *
      * @var string
      */
-    protected $description = 'Parse json and generate controllers.';
+    protected $description = 'Parse json and generate controllers';
 
     /**
      * Create a new command instance.

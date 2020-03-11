@@ -62,7 +62,7 @@ class BaseBlogEvent extends CrudEvent
     /**
      * @return array
      */
-    public function jsonSerialize(): array
+    public function toPayload(): array
     {
         return [
             'id' => $this->getId(),

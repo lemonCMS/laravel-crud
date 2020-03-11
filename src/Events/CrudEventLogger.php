@@ -4,7 +4,7 @@ namespace LemonCMS\LaravelCrud\Events;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 
-class CrudEventLogger implements \JsonSerializable
+class CrudEventLogger implements ShouldQueue, \JsonSerializable
 {
     /**
      * @var string

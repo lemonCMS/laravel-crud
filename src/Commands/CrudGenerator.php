@@ -30,7 +30,7 @@ class CrudGenerator extends Command
      *
      * @var string
      */
-    protected $description = 'Parse json and generate all the stuff.';
+    protected $description = 'Parse json and generate api routes';
 
     /**
      * Create a new command instance.

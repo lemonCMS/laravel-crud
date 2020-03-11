@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use LemonCMS\LaravelCrud\Events\AbstractCrudEvent;
 use LemonCMS\LaravelCrud\Events\CrudEventLogger;
-use LemonCMS\LaravelCrud\Http\Requests\CrudRequest;
 
 abstract class CrudListener
 {
@@ -111,7 +110,7 @@ abstract class CrudListener
                 call_user_func([$this, 'afterDelete']);
                 Log::debug('Finished  afterDelete');
             }
-            $this->response($this->entity, 200);
+            $this->sendResponse($this->entity, 200);
 
             return;
         }
@@ -123,13 +122,13 @@ abstract class CrudListener
                 call_user_func([$this, 'afterRestore']);
                 Log::debug('Finished  afterRestore');
             }
-            $this->response($this->entity, 200);
+            $this->sendResponse($this->entity, 200);
 
             return;
         }
 
         Log::debug('Listener: '.__CLASS__);
-        foreach ($this->event->jsonSerialize() as $field => $value) {
+        foreach ($this->event->toPayload() as $field => $value) {
             $method = Str::camel('set_'.$field);
             Log::debug('Searching method: '.$method);
             if (! is_callable([$this, $method])) {
@@ -150,7 +149,7 @@ abstract class CrudListener
 
         if ($this->entity->isClean()) {
             Log::debug('Entity is clean, skipping');
-            $this->response->json($this->entity, 200);
+            $this->sendResponse($this->entity, 200);
 
             return;
         }
@@ -170,7 +169,7 @@ abstract class CrudListener
                 call_user_func([$this, 'afterSave']);
                 Log::debug('Finished  afterSave: ');
             }
-            $this->response($this->entity, 201);
+            $this->sendResponse($this->entity, 201);
         } else {
             Log::debug('Searching  afterSaveFailed: ');
             if (is_callable([$this, 'afterSaveFailed'])) {
@@ -181,7 +180,7 @@ abstract class CrudListener
             Log::error('Listener: '.__CLASS__);
             Log::error('Model: '.$this->model);
             Log::error('Entity is save failed ID: '.$this->entity->id);
-            $this->response($this->entity, 400);
+            $this->sendResponse($this->entity, 400);
         }
     }
 
@@ -189,7 +188,7 @@ abstract class CrudListener
      * @param $response
      * @param int $statusCode
      */
-    protected function response($response, $statusCode = 200): void
+    protected function sendResponse($response, $statusCode = 200): void
     {
         $this->response->setContent($response)
             ->setStatusCode($statusCode)
