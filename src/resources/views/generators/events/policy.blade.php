@@ -5,7 +5,7 @@ use App\Models\{{$model}};
 use App\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class {{$policy}}Policy
+class {{$policy}}
 {
     use HandlesAuthorization;
 
