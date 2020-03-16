@@ -1,6 +1,6 @@
 namespace App\Listeners\{{$namespace}};
 
-use App\Crud\Listeners\CrudListener;
+use LemonCMS\LaravelCrud\Listeners\CrudListener;
 use App\Events\{{$namespace}}\{{$event}};
 use App\Models\{{$model}};
 

@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\File;
-use LemonCMS\LaravelCrud\ServiceProvider;
 
 // When testing inside of a Laravel installation, the base class would be Tests\TestCase
 class CrudGeneratorTest extends Orchestra\Testbench\TestCase
@@ -33,7 +32,20 @@ class CrudGeneratorTest extends Orchestra\Testbench\TestCase
                 "middleware": ["api:auth"]
             }
         ]
-    }
+    },
+    "dashboard": {
+            "namespace": "Api\\\Dashboard",
+            "prefix": "dashboard",
+            "type": "middleware",
+            "middleware": [
+                "api:auth"
+            ],
+            "routes": {
+                "accounts": {
+                    "type": "resource"
+                }
+            }
+        }
   }
 }
 JSON;
@@ -41,7 +53,7 @@ JSON;
         File::shouldReceive('get')->once()->with(base_path('.crud-specs.json'))->andReturn($json);
         File::partialMock();
 
-        $path = (realpath(__DIR__.'/../../test-data')).'/api.php';
+        $path = (realpath(__DIR__ . '/../../test-data')) . '/api.php';
 
         $this->artisan('crud:generate', [
             '--output' => $path,
@@ -93,7 +105,7 @@ JSON;
         File::shouldReceive('get')->once()->with(base_path('.crud-specs.json'))->andReturn($json);
         File::partialMock();
 
-        $path = (realpath(__DIR__.'/../../test-data')).'/api.php';
+        $path = (realpath(__DIR__ . '/../../test-data')) . '/api.php';
 
         $this->artisan('crud:generate', [
             '--output' => $path,
@@ -111,7 +123,7 @@ JSON;
     protected function getEnvironmentSetUp($app)
     {
         $app['config']->set('database.default', 'testing');
-        $crudConfig = (include realpath(__DIR__.'/../../TestApp/config.php'));
+        $crudConfig = (include realpath(__DIR__ . '/../../TestApp/config.php'));
         $app['config']->set('crud', $crudConfig);
     }
 }

@@ -3,7 +3,7 @@
 namespace LemonCMS\LaravelCrud;
 
 use Illuminate\Support\Facades\Event;
-use LemonCMS\LaravelCrud\Commands\CrudController;
+use LemonCMS\LaravelCrud\Commands\CrudControllers;
 use LemonCMS\LaravelCrud\Commands\CrudEvents;
 use LemonCMS\LaravelCrud\Commands\CrudGenerator;
 
@@ -23,7 +23,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
             $this->commands([
                 CrudGenerator::class,
                 CrudEvents::class,
-                CrudController::class,
+                CrudControllers::class,
             ]);
         }
 

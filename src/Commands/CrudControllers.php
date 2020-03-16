@@ -6,7 +6,7 @@ use File;
 use Illuminate\Console\Command;
 use View;
 
-class CrudController extends Command
+class CrudControllers extends Command
 {
     use CrudCommandTrait;
 
@@ -15,7 +15,7 @@ class CrudController extends Command
      *
      * @var string
      */
-    protected $signature = 'crud:controller
+    protected $signature = 'crud:controllers
         {--always : Overwrite all existing files}
         {--never : Never overwrite existing files}
         {--config= : Location of your custom config file}

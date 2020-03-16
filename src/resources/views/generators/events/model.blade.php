@@ -2,7 +2,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use App\Crud\Model\CrudTrait;
+use LemonCMS\LaravelCrud\Model\CrudTrait;
 
 class {{$model}} extends Model
 {

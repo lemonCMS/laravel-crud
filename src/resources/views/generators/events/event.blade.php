@@ -1,6 +1,6 @@
 namespace App\Events\{{$namespace}};
 
-use App\Crud\Events\CrudEvent;
+use LemonCMS\LaravelCrud\Events\CrudEvent;
 
 class {{$event}} extends CrudEvent
 {
