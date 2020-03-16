@@ -169,6 +169,10 @@ trait CrudCommandTrait
      */
     private function getConfirmation($file)
     {
+        if (!File::exists($file)) {
+            return true;
+        }
+
         if ($this->option('always')) {
             return true;
         }
