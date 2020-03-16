@@ -53,7 +53,7 @@ JSON;
         File::shouldReceive('get')->once()->with(base_path('.crud-specs.json'))->andReturn($json);
         File::partialMock();
 
-        $path = (realpath(__DIR__ . '/../../test-data')) . '/api.php';
+        $path = (realpath(__DIR__.'/../../test-data')).'/api.php';
 
         $this->artisan('crud:generate', [
             '--output' => $path,
@@ -105,7 +105,7 @@ JSON;
         File::shouldReceive('get')->once()->with(base_path('.crud-specs.json'))->andReturn($json);
         File::partialMock();
 
-        $path = (realpath(__DIR__ . '/../../test-data')) . '/api.php';
+        $path = (realpath(__DIR__.'/../../test-data')).'/api.php';
 
         $this->artisan('crud:generate', [
             '--output' => $path,
@@ -123,7 +123,7 @@ JSON;
     protected function getEnvironmentSetUp($app)
     {
         $app['config']->set('database.default', 'testing');
-        $crudConfig = (include realpath(__DIR__ . '/../../TestApp/config.php'));
+        $crudConfig = (include realpath(__DIR__.'/../../TestApp/config.php'));
         $app['config']->set('crud', $crudConfig);
     }
 }

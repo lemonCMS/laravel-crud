@@ -40,7 +40,7 @@ JSON;
 
         $path = (realpath(__DIR__.'/../../test-data'));
 
-        $this->artisan('crud:controller', [
+        $this->artisan('crud:controllers', [
             '--path' => $path,
             '--always' => true,
         ]);
