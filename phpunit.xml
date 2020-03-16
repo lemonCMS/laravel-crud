@@ -24,7 +24,6 @@
             <exclude>
                 <directory>./src/resources</directory>
                 <directory>./src/config</directory>
-                <directory>./src/database</directory>
             </exclude>
         </whitelist>
     </filter>

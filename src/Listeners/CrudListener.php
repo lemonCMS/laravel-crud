@@ -127,7 +127,7 @@ abstract class CrudListener
             return;
         }
 
-        Log::debug('Listener: '.__CLASS__);
+        Log::debug('Listener: '.get_called_class());
         foreach ($this->event->toPayload() as $field => $value) {
             $method = Str::camel('set_'.$field);
             Log::debug('Searching method: '.$method);
@@ -223,5 +223,33 @@ abstract class CrudListener
     protected function setRestore(bool $value = false): void
     {
         $this->restore = $value;
+    }
+
+    protected function beforeRun()
+    {
+    }
+
+    protected function afterRun()
+    {
+    }
+
+    protected function beforeSave()
+    {
+    }
+
+    protected function afterSave()
+    {
+    }
+
+    protected function afterSaveFailed()
+    {
+    }
+
+    protected function afterDelete()
+    {
+    }
+
+    protected function afterRestore()
+    {
     }
 }

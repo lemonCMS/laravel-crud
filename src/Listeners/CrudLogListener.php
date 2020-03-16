@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Listeners;
+namespace LemonCMS\LaravelCrud\Listeners;
 
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;

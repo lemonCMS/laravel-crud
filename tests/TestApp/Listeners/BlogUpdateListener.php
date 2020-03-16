@@ -29,4 +29,8 @@ class BlogUpdateListener extends CrudListener
     {
         $this->entity->description = $value;
     }
+
+    protected function afterDelete()
+    {
+    }
 }

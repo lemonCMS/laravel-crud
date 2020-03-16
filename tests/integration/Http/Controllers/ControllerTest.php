@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Response;
 use LemonCMS\LaravelCrud\Exceptions\MissingEventException;
 use LemonCMS\LaravelCrud\Exceptions\MissingListenerException;
 use LemonCMS\LaravelCrud\Exceptions\MissingModelException;
+use LemonCMS\LaravelCrud\Model\EventsTable;
 use Mockery;
 use Orchestra\Testbench\TestCase;
 use TestApp\Models\Blog;
@@ -275,6 +276,8 @@ class ControllerTest extends TestCase
             'description' => 'The Netherlands second',
         ]);
         $response->assertStatus(200);
+
+        $this->assertEquals(EventsTable::all()->count(), 1);
     }
 
     public function testDashboardDestroyAndRestore()
@@ -372,6 +375,10 @@ class ControllerTest extends TestCase
 
         $this->loadMigrationsFrom([
             '--database' => 'testing',
+        ]);
+
+        $this->loadMigrationsFrom([
+            '--database' => 'testing',
             '--path' => realpath(__DIR__.'/../../../fixtures'),
         ]);
     }
@@ -435,7 +442,6 @@ class ControllerTest extends TestCase
     protected function getPackageAliases($app)
     {
         return [
-            //'Sentry' => 'Cartalyst\Sentry\Facades\Laravel\Sentry',
             //'YourPackage' => 'YourProject\YourPackage\Facades\YourPackage',
         ];
     }

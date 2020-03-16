@@ -9,6 +9,13 @@
 
 This package makes it easy to setup a crud microservice with event logging in Laravel.
 
+## How to install
+
+```shell script
+composer require lemoncms/laravel-crud
+```
+
+
 ## What can it do?
 
 it can generate Provide a JSON-file with the api-routes you need and generate the code.
@@ -42,7 +49,7 @@ Setup the laravel ```EventServiceProvider``` to autodiscover events.
     }
 ```
 
-In your project root create a file called [crud.json](crud-example.json) containing the routes their middleware etc.
+In your project root create a file called [.crud-specs.json](crud-example.json) containing the routes their middleware etc.
 
 Then run:
 ```shell script
@@ -277,8 +284,8 @@ class BlogStoreListener extends CrudListener
 
 ````
 
-#Todo
- - Testing policies
+## Todo
+ - Testing policies, i was unable to get them to work
  - Implement Collection support
  - implement caching
  
