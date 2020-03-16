@@ -1,6 +1,6 @@
 namespace App\Http\Controllers\{{$controller[0]['meta']['namespace']}};
 
-use App\Crud\Http\Controllers\CrudControllerTrait;
+use LemonCMS\LaravelCrud\Http\Controllers\CrudControllerTrait;
 use App\Http\Controllers\Controller;
 use Request;
 
