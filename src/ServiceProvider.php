@@ -26,6 +26,9 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
                 CrudController::class,
             ]);
         }
+
+        Event::listen('LemonCMS\LaravelCrud\Events\CrudEventLogger',
+            'LemonCMS\LaravelCrud\Listeners\CrudLogListener');
     }
 
     public function register()
@@ -33,8 +36,5 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
         $this->mergeConfigFrom(
             __DIR__.'/config/crud.php', 'crud'
         );
-
-        Event::listen('LemonCMS\LaravelCrud\Events\CrudEventLogger',
-            'LemonCMS\LaravelCrud\Listeners\CrudLogListener');
     }
 }
