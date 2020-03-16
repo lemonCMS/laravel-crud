@@ -169,7 +169,7 @@ trait CrudCommandTrait
      */
     private function getConfirmation($file)
     {
-        if (!File::exists($file)) {
+        if (! File::exists($file)) {
             return true;
         }
 
