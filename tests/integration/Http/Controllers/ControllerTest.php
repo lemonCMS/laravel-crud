@@ -168,7 +168,8 @@ class ControllerTest extends TestCase
         Response::shouldReceive('setStatusCode')->once()->with(200)->andReturnSelf();
         Response::shouldReceive('send')->once();
 
-        $this->getJson('api/blogs/1');
+        $response = $this->getJson('api/blogs/1');
+        // dd($response);
     }
 
     public function testFetchResourceWithInclude()
@@ -426,6 +427,7 @@ class ControllerTest extends TestCase
         return [
             'LemonCMS\LaravelCrud\ServiceProvider',
             'TestApp\EventServiceProvider',
+            'TestApp\AuthServiceProvider',
         ];
     }
 

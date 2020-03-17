@@ -235,7 +235,7 @@ trait CrudControllerTrait
      */
     public function show(Request $request, $id)
     {
-        $record = call_user_func([$this->model, 'find'], $id);
+        $record = call_user_func([$this->model, 'findOrFail'], $id);
 
         $this->runPolicy('view', $record);
         $this->_show($request, $id);
