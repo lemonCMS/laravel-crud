@@ -128,6 +128,16 @@ trait CrudControllerTrait
             $resource = config('crud.models.plural') ? Str::plural($resource) : $resource;
         }
 
+        $path = $this->namespaces[$namespace].
+            $resource.
+            '\\'.
+            ($type ? Str::studly($type) : '').
+            $this->suffixes[Str::singular($namespace)];
+
+        if (class_exists($path)) {
+            return $path;
+        }
+
         $namespacedPath =
             $this->namespaces[$namespace].
             $resource.

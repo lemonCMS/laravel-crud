@@ -33,6 +33,79 @@ trait CrudCommandTrait
     protected $listeners = [];
 
     /**
+     * Check if path exists if not then create it.
+     *
+     * @param $path
+     * @return string
+     * @throws \Exception
+     */
+    public function getPath($path)
+    {
+        if (is_array($path)) {
+            $path = implode(DIRECTORY_SEPARATOR, $path);
+        }
+
+        if ($this->option('path')) {
+            if (! realpath($this->option('path'))) {
+                throw new \Exception('Directory not found : '.$this->option('path'));
+            }
+
+            $rp = implode(DIRECTORY_SEPARATOR, [realpath($this->option('path')), $path]);
+
+            if (! \File::isDirectory($rp)) {
+                \File::makeDirectory($rp, 493, true);
+            }
+
+            return $rp;
+        }
+
+        if (! \File::isDirectory(app_path($path))) {
+            \File::makeDirectory(app_path($path), 493, true);
+        }
+
+        return app_path($path);
+    }
+
+    /**
+     * Load json configuration.
+     *
+     * @return mixed
+     * @throws \Exception
+     */
+    protected function loadConfig()
+    {
+        $this->config = $this->option('config') ?: base_path('.crud-specs.json');
+        if (! File::exists($this->config)) {
+            throw new \Exception(new FileNotFoundException('File not found at '.$this->config));
+        }
+        $data = File::get($this->config);
+        $json = json_decode($data, true);
+
+        if ($this->isValidJson()) {
+            return $json;
+        }
+    }
+
+    /**
+     * Check json for errors.
+     *
+     * @return bool
+     * @throws \Exception
+     */
+    private function isValidJson()
+    {
+        switch (json_last_error()) {
+            case JSON_ERROR_NONE:
+                return true;
+                break;
+            default:
+            case JSON_ERROR_SYNTAX:
+                throw new \Exception('Syntax error, malformed JSON');
+                break;
+        }
+    }
+
+    /**
      * Getting all controllers with their namespaces.
      *
      * @param array $json
@@ -107,11 +180,12 @@ trait CrudCommandTrait
                     throw new Exception('Controller is wrong');
                 }
 
-                $meta['namespace'] = $meta['namespace'].'\\'.$matches[1];
-                $meta['path'] = $meta['path'].DIRECTORY_SEPARATOR.$matches[1];
-                $meta['model'] = Str::studly(config('crud.models.plural') ? Str::plural($matches[1]) : Str::singular($matches[1]));
-                $meta['policy'] = Str::studly(config('crud.models.plural') ? Str::plural($matches[1]) : Str::singular($matches[1])).config('crud.suffixes.policy');
+                $resource = Str::studly(config('crud.models.plural') ? Str::plural($matches[1]) : Str::singular($matches[1]));
 
+                $meta['namespace'] = $meta['namespace'].'\\'.$resource;
+                $meta['path'] = $meta['path'].DIRECTORY_SEPARATOR.$resource;
+                $meta['model'] = $resource;
+                $meta['policy'] = $resource.config('crud.suffixes.policy');
                 $this->pushEvent($action, $meta);
             }
         }
@@ -209,78 +283,5 @@ trait CrudCommandTrait
         }
 
         return in_array($answer, ['yes', 'y']);
-    }
-
-    /**
-     * Load json configuration.
-     *
-     * @return mixed
-     * @throws \Exception
-     */
-    protected function loadConfig()
-    {
-        $this->config = $this->option('config') ?: base_path('.crud-specs.json');
-        if (! File::exists($this->config)) {
-            throw new \Exception(new FileNotFoundException('File not found at '.$this->config));
-        }
-        $data = File::get($this->config);
-        $json = json_decode($data, true);
-
-        if ($this->isValidJson()) {
-            return $json;
-        }
-    }
-
-    /**
-     * Check json for errors.
-     *
-     * @return bool
-     * @throws \Exception
-     */
-    private function isValidJson()
-    {
-        switch (json_last_error()) {
-            case JSON_ERROR_NONE:
-                return true;
-                break;
-            default:
-            case JSON_ERROR_SYNTAX:
-                throw new \Exception('Syntax error, malformed JSON');
-                break;
-        }
-    }
-
-    /**
-     * Check if path exists if not then create it.
-     *
-     * @param $path
-     * @return string
-     * @throws \Exception
-     */
-    public function getPath($path)
-    {
-        if (is_array($path)) {
-            $path = implode(DIRECTORY_SEPARATOR, $path);
-        }
-
-        if ($this->option('path')) {
-            if (! realpath($this->option('path'))) {
-                throw new \Exception('Directory not found : '.$this->option('path'));
-            }
-
-            $rp = implode(DIRECTORY_SEPARATOR, [realpath($this->option('path')), $path]);
-
-            if (! \File::isDirectory($rp)) {
-                \File::makeDirectory($rp, 493, true);
-            }
-
-            return $rp;
-        }
-
-        if (! \File::isDirectory(app_path($path))) {
-            \File::makeDirectory(app_path($path), 493, true);
-        }
-
-        return app_path($path);
     }
 }

@@ -3,6 +3,7 @@
 namespace LemonCMS\LaravelCrud\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Str;
 use View;
 
 class CrudEvents extends Command
@@ -65,14 +66,13 @@ class CrudEvents extends Command
     private function renderEvent(string $type, array $event)
     {
         $template = View::make('crud::generators.events.'.$type, $event);
-        $path = $this->getPath([\Str::Studly(\Str::plural($type)), $event['path']]);
 
         if ($type === 'model') {
             $path = $this->getPath('Models');
-        }
-
-        if ($type === 'policy') {
+        } elseif ($type === 'policy') {
             $path = $this->getPath(['Models', 'Policies']);
+        } else {
+            $path = $this->getPath([\Str::Studly(\Str::plural($type)), $event['path']]);
         }
 
         $file = implode(DIRECTORY_SEPARATOR, [

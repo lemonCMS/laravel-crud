@@ -15,7 +15,7 @@ class {{$policy}}
      * @param  \App\User  $user
      * @return mixed
      */
-    public function viewAny(User $user)
+    public function default(?User $user)
     {
         return true;
     }
@@ -27,7 +27,7 @@ class {{$policy}}
      * @param  \App\Models\{{$model}}  $model
      * @return mixed
      */
-    public function view(User $user, {{$model}} $model)
+    public function view(?User $user, {{$model}} $model)
     {
         // todo
         // if ($model->users()->where('id', $user->id)->first()) {
@@ -43,7 +43,7 @@ class {{$policy}}
      * @param  \App\User  $user
      * @return mixed
      */
-    public function create(User $user)
+    public function create(?User $user)
     {
         return false;
     }
@@ -55,7 +55,7 @@ class {{$policy}}
      * @param  \App\Models\{{$model}}  $model
      * @return mixed
      */
-    public function update(User $user, {{$model}} $model)
+    public function update(?User $user, {{$model}} $model)
     {
         return false;
     }
@@ -67,7 +67,7 @@ class {{$policy}}
      * @param  \App\Models\{{$model}}  $model
      * @return mixed
      */
-    public function delete(User $user, {{$model}} $model)
+    public function delete(?User $user, {{$model}} $model)
     {
         return false;
     }
@@ -79,7 +79,7 @@ class {{$policy}}
      * @param  \App\Models\{{$model}}  $model
      * @return mixed
      */
-    public function restore(User $user, {{$model}}  $model)
+    public function restore(?User $user, {{$model}}  $model)
     {
         return false;
     }
@@ -91,7 +91,7 @@ class {{$policy}}
      * @param  \App\Models\{{$model}}  $model
      * @return mixed
      */
-    public function forceDelete(User $user, {{$model}}  $model)
+    public function forceDelete(?User $user, {{$model}}  $model)
     {
         return true;
     }
