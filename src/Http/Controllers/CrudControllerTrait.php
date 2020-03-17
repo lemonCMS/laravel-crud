@@ -124,6 +124,10 @@ trait CrudControllerTrait
      */
     private function combine($namespace, $resource, $type = null)
     {
+        if (in_array($namespace, ['models', 'policies'])) {
+            $resource = config('crud.models.plural') ? Str::plural($resource) : $resource;
+        }
+
         $namespacedPath =
             $this->namespaces[$namespace].
             $resource.

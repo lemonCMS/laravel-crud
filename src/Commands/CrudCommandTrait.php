@@ -110,7 +110,7 @@ trait CrudCommandTrait
                 $meta['namespace'] = $meta['namespace'].'\\'.$matches[1];
                 $meta['path'] = $meta['path'].DIRECTORY_SEPARATOR.$matches[1];
                 $meta['model'] = Str::studly(config('crud.models.plural') ? Str::plural($matches[1]) : Str::singular($matches[1]));
-                $meta['policy'] = Str::studly(Str::singular($matches[1])).config('crud.suffixes.policy');
+                $meta['policy'] = Str::studly(config('crud.models.plural') ? Str::plural($matches[1]) : Str::singular($matches[1])).config('crud.suffixes.policy');
 
                 $this->pushEvent($action, $meta);
             }
