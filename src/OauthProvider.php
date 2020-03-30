@@ -2,9 +2,9 @@
 
 namespace LemonCMS\LaravelCrud;
 
-use LemonCMS\LaravelCrud\Factories\OAuthClient;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\ServiceProvider;
+use LemonCMS\LaravelCrud\Factories\OAuthClient;
 
 class OauthProvider extends ServiceProvider
 {
@@ -25,8 +25,7 @@ class OauthProvider extends ServiceProvider
      */
     public function boot()
     {
-        App::bind('OAuthClient', function()
-        {
+        App::bind('OAuthClient', function () {
             return new OAuthClient;
         });
     }

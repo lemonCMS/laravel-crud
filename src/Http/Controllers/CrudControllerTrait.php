@@ -157,8 +157,6 @@ trait CrudControllerTrait
         if (class_exists($path)) {
             return $path;
         }
-
-        return null;
     }
 
     /**

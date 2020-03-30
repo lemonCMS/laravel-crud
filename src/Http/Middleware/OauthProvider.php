@@ -29,8 +29,8 @@ class OauthProvider
         }
 
         collect($scopes)->each(function ($scope) use ($body) {
-            if (!in_array($scope, $body->scopes)) {
-                throw new OAuthScopeInvalid('Missing scope: ' . $scope);
+            if (! in_array($scope, $body->scopes)) {
+                throw new OAuthScopeInvalid('Missing scope: '.$scope);
             }
         });
 

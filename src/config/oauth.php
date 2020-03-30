@@ -1,4 +1,5 @@
 <?php
+
 return [
     'host' => env('AUTHORIZATION_API_HOST'),
     'token' => env('AUTHORIZATION_API_TOKEN'),
