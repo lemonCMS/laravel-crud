@@ -16,11 +16,12 @@ class {{$listener}} extends CrudListener
     /**
      * Handle the event.
      *
+     * @param {{$event}} $event
      * @return void
      */
     public function handle({{$event}} $event)
     {
-        $this->init($event);
+        $this->process($event);
     }
 
     public function beforeRun()
