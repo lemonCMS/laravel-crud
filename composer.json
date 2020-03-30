@@ -28,7 +28,7 @@
                 "LemonCMS\\LaravelCrud\\ServiceProvider"
             ],
             "aliases": {
-                "OAuthClient": "LemonCMS\\LaravelCrud\\Facade\\OAuthClient"
+                "OAuthClient": "LemonCMS\\LaravelCrud\\Facades\\OAuthClient"
             }
         }
     },
