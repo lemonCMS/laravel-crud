@@ -97,10 +97,6 @@ class OAuthClient
         $this->expires_in = $response->expires_in;
         $this->token_type = $response->token_type;
 
-        if ($this->expires_in < time()) {
-            throw new OAuthTokenExpired('The token is expired');
-        }
-
         return $this->access_token;
     }
 }
