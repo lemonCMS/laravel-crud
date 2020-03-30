@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace LemonCMS\LaravelCrud\Http\Middleware;
 
-use App\Exceptions\OAuthScopeInvalid;
-use App\Exceptions\OAuthTokenExpired;
-use App\Services\AccountService;
 use Closure;
 use Firebase\JWT\JWT;
 use Illuminate\Http\Request;
+use LemonCMS\LaravelCrud\Exceptions\OAuthScopeInvalid;
+use LemonCMS\LaravelCrud\Exceptions\OAuthTokenExpired;
+use LemonCMS\LaravelCrud\Services\AccountService;
 
 class OauthProvider
 {

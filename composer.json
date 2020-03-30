@@ -9,7 +9,9 @@
             "email": "rsvvuuren@hotmail.com"
         }
     ],
-    "require": {},
+    "require": {
+        "firebase/php-jwt": "^5.2"
+    },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^2.16",
         "orchestra/testbench": "^5.0.2",
@@ -26,7 +28,7 @@
                 "LemonCMS\\LaravelCrud\\ServiceProvider"
             ],
             "aliases": {
-                "LaravelCrud": "LemonCMS\\LaravelCrud\\Facade"
+                "OAuthClient": "LemonCMS\\LaravelCrud\\Facade\\OAuthClient"
             }
         }
     },
