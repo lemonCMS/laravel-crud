@@ -13,6 +13,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
     {
         $this->publishes([
             __DIR__.'/config/crud.php' => config_path('crud.php'),
+            __DIR__.'/config/oauth.php' => config_path('oauth.php'),
         ]);
 
         $this->loadViewsFrom(__DIR__.'/resources/views', 'crud');
