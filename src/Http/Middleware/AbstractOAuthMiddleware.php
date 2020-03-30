@@ -9,18 +9,28 @@ use LemonCMS\LaravelCrud\Exceptions\OAuthScopeInvalid;
 use LemonCMS\LaravelCrud\Exceptions\OAuthTokenExpired;
 use LemonCMS\LaravelCrud\Services\AccountService;
 
-class OauthProvider
+abstract class AbstractOAuthMiddleware
 {
     /**
      * @param Request $request
      * @param Closure $next
-     * @param array $scopes
+     * @param mixed ...$scopes
      * @return mixed
-     * @throws OAuthTokenExpired
      */
-    public function handle(Request $request, Closure $next, ...$scopes)
+    abstract public function handle(Request $request, Closure $next, ...$scopes);
+
+    protected function handleClient()
     {
         \OAuthClient::setUp();
+    }
+
+    /**
+     * @param Request $request
+     * @param $scopes
+     * @throws OAuthTokenExpired
+     */
+    protected function handleUser(Request $request, $scopes)
+    {
         list(, $body) = explode('.', $request->bearerToken());
         $body = Jwt::jsonDecode(Jwt::urlsafeB64Decode($body));
 
@@ -38,7 +48,5 @@ class OauthProvider
         $request->setUserResolver(function () use ($user) {
             return $user;
         });
-
-        return $next($request);
     }
 }

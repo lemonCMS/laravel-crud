@@ -5,6 +5,7 @@ namespace LemonCMS\LaravelCrud\Factories;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Auth\Access\AuthorizationException;
+use LemonCMS\LaravelCrud\Exceptions\OAuthTokenExpired;
 
 class OAuthClient
 {
@@ -44,7 +45,7 @@ class OAuthClient
             'headers' => [
                 'Authorization' => 'Bearer '.$this->access_token,
                 'Accept' => 'application/json',
-                'X-USER-ID' => $user->id ?? null,
+                'X-USER-ID' => $user ? $user->id : null,
                 'X-CLIENT-ID' => config('oauth.client_id'),
             ],
         ], $params);
@@ -95,6 +96,10 @@ class OAuthClient
         $this->access_token = $response->access_token;
         $this->expires_in = $response->expires_in;
         $this->token_type = $response->token_type;
+
+        if ($this->expires_in < time()) {
+            throw new OAuthTokenExpired('The token is expired');
+        }
 
         return $this->access_token;
     }
