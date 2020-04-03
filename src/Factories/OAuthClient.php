@@ -5,7 +5,6 @@ namespace LemonCMS\LaravelCrud\Factories;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Auth\Access\AuthorizationException;
-use LemonCMS\LaravelCrud\Exceptions\OAuthTokenExpired;
 
 class OAuthClient
 {
@@ -28,37 +27,6 @@ class OAuthClient
     public function __construct()
     {
         $this->setUp();
-    }
-
-    /**
-     * @param string $method
-     * @param string $domain
-     * @param string $path
-     * @param array $params
-     * @return mixed
-     * @throws \Exception
-     */
-    public function client(string $method, string $domain, string $path, array $params = [])
-    {
-        $user = \Request::user();
-        $params = array_replace_recursive([
-            'headers' => [
-                'Authorization' => 'Bearer '.$this->access_token,
-                'Accept' => 'application/json',
-                'X-USER-ID' => $user ? $user->id : null,
-                'X-CLIENT-ID' => config('oauth.client_id'),
-            ],
-        ], $params);
-
-        $guzzle = new Client();
-        /** @var Response $response */
-        $response = call_user_func([$guzzle, $method], $domain.$path, $params);
-
-        if ($response->getStatusCode() < 200 || $response->getStatusCode() > 299) {
-            throw new \Exception('Shit hit the fan');
-        }
-
-        return json_decode((string) $response->getBody());
     }
 
     /**
@@ -98,5 +66,60 @@ class OAuthClient
         $this->token_type = $response->token_type;
 
         return $this->access_token;
+    }
+
+    /**
+     * @param string $method
+     * @param string $domain
+     * @param string $path
+     * @param array $params
+     * @return mixed
+     * @throws \Exception
+     */
+    public function client(string $method, string $domain, string $path, array $params = [])
+    {
+        $user = \Request::user();
+        $params = array_replace_recursive([
+            'headers' => [
+                'Authorization' => 'Bearer '.$this->access_token,
+                'Accept' => 'application/json',
+                'X-USER-ID' => $user ? $user->id : null,
+                'X-CLIENT-ID' => config('oauth.client_id'),
+            ],
+        ], $params);
+
+        $guzzle = new Client();
+        /** @var Response $response */
+        $response = call_user_func([$guzzle, $method], $domain.$path, $params);
+
+        if ($response->getStatusCode() < 200 || $response->getStatusCode() > 299) {
+            throw new \Exception('Shit hit the fan');
+        }
+
+        return json_decode((string) $response->getBody());
+    }
+
+    /**
+     * @return string
+     */
+    public function getAccessToken()
+    {
+        return $this->access_token;
+    }
+
+    /**
+     * @return string
+     */
+    public function getExpiresIn()
+    {
+        return $this->expires_in;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTokenType()
+    {
+        return $this->token_type;
     }
 }
