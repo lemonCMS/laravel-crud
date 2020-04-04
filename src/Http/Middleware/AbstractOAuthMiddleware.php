@@ -3,10 +3,13 @@
 namespace LemonCMS\LaravelCrud\Http\Middleware;
 
 use Closure;
-use Firebase\JWT\JWT;
 use Illuminate\Http\Request;
+use Lcobucci\JWT\Parser;
+use Lcobucci\JWT\Signer\Key;
+use Lcobucci\JWT\Signer\Rsa\Sha256;
 use LemonCMS\LaravelCrud\Exceptions\OAuthScopeInvalid;
 use LemonCMS\LaravelCrud\Exceptions\OAuthTokenExpired;
+use LemonCMS\LaravelCrud\Exceptions\OAuthTokenInvalid;
 use LemonCMS\LaravelCrud\Services\AccountService;
 
 abstract class AbstractOAuthMiddleware
@@ -28,21 +31,32 @@ abstract class AbstractOAuthMiddleware
      * @param Request $request
      * @param $scopes
      * @throws OAuthTokenExpired
+     * @throws OAuthTokenInvalid
      */
     protected function handleUser(Request $request, $scopes)
     {
-        list(, $body) = explode('.', $request->bearerToken());
-        $body = Jwt::jsonDecode(Jwt::urlsafeB64Decode($body));
+        $token = (new Parser())->parse($request->bearerToken());
+        $publicKey = new Key('file://'.storage_path('oauth-public.key'));
 
-        if ($body->exp < time()) {
-            throw new OAuthTokenExpired('The token is expired');
+        if ($token->verify(new Sha256(), $publicKey) === false) {
+            throw new OAuthTokenInvalid();
         }
 
-        collect($scopes)->each(function ($scope) use ($body) {
-            if (! in_array($scope, $body->scopes)) {
-                throw new OAuthScopeInvalid('Missing scope: '.$scope);
-            }
-        });
+        if ($token->isExpired()) {
+            throw new OAuthTokenExpired();
+        }
+
+        $allScopes = collect($token->getClaim('scopes'))->filter(function ($scope) {
+            return $scope === '*';
+        })->isNotEmpty();
+
+        if ($allScopes === false) {
+            collect($scopes)->each(function ($scope) use ($token) {
+                if (! in_array($scope, $token->getClaim('scopes'))) {
+                    throw new OAuthScopeInvalid('Missing scope: '.$scope);
+                }
+            });
+        }
 
         $user = (new AccountService)->getUser($request->bearerToken());
         $request->setUserResolver(function () use ($user) {
