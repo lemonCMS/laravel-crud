@@ -1,19 +1,20 @@
 <?php
 
-namespace LemonCMS\LaravelCrud\Http\Middleware;
+namespace App\Http\Middleware;
 
+use Auth;
 use Illuminate\Auth\AuthenticationException;
 use Laravel\Passport\Http\Middleware\CheckClientCredentials;
+use Request;
+use Session;
 
 class CheckApiCredentials extends CheckClientCredentials
 {
     /**
-     * Validate the scopes and token on the incoming request.
-     *
      * @param \Psr\Http\Message\ServerRequestInterface $psr
      * @param array $scopes
-     * @return void
-     * @throws \Laravel\Passport\Exceptions\MissingScopeException|\Illuminate\Auth\AuthenticationException
+     * @throws AuthenticationException
+     * @throws \Laravel\Passport\Exceptions\MissingScopeException
      */
     protected function validate($psr, $scopes)
     {
@@ -24,10 +25,15 @@ class CheckApiCredentials extends CheckClientCredentials
         }
 
         $this->validateScopes($token, $scopes);
-
+        $clientId = $psr->getAttribute('oauth_client_id', null);
         $userId = $psr->getAttribute('oauth_user_id', null);
-        if ($userId !== null) {
-            \Auth::loginUsingId($userId);
+        if ('array' !== Session::getDefaultDriver()) {
+            Session::put('X_OAUTH_CLIENT_ID', $clientId);
+            Session::put('X_OAUTH_USER_ID', $userId);
+        }
+
+        if (null !== $userId) {
+            Auth::loginUsingId($userId);
         }
     }
 }

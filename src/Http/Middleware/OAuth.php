@@ -11,9 +11,10 @@ class OAuth extends AbstractOAuthMiddleware
     /**
      * @param Request $request
      * @param Closure $next
-     * @param array $scopes
+     * @param mixed ...$scopes
      * @return mixed
      * @throws OAuthTokenExpired
+     * @throws \LemonCMS\LaravelCrud\Exceptions\OAuthTokenInvalid
      */
     public function handle(Request $request, Closure $next, ...$scopes)
     {

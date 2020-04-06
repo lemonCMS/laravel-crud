@@ -95,8 +95,11 @@ class OAuthClient
         if ($response->getStatusCode() < 200 || $response->getStatusCode() > 299) {
             throw new \Exception('Shit hit the fan');
         }
+        if (in_array($response->getHeader('Content-Type'), ['application/json'])) {
+            return json_decode((string) $response->getBody());
+        }
 
-        return json_decode((string) $response->getBody());
+        return $response->getBody()->getContents();
     }
 
     /**
