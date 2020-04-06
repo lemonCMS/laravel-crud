@@ -6,4 +6,4 @@ install:
   - composer install
 script:
   - phpunit
-  - php coverage-checker.php clover.xml 75
+  - php coverage-checker.php clover.xml 60
