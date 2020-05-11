@@ -244,6 +244,7 @@ class ControllerTest extends TestCase
 
             return true;
         })->andReturnSelf();
+        $mock->shouldReceive('header')->andReturnSelf();
         $mock->shouldReceive('setStatusCode')->with(201)->andReturnSelf();
         $mock->shouldReceive('send');
 
@@ -268,6 +269,7 @@ class ControllerTest extends TestCase
 
             return true;
         })->andReturnSelf();
+        $mock->shouldReceive('header')->andReturnSelf();
         $mock->shouldReceive('setStatusCode')->with(201)->andReturnSelf();
         $mock->shouldReceive('send');
 
@@ -293,6 +295,7 @@ class ControllerTest extends TestCase
 
             return true;
         })->andReturnSelf();
+        $mock->shouldReceive('header')->andReturnSelf();
         $mock->shouldReceive('setStatusCode')->with(200)->andReturnSelf();
         $mock->shouldReceive('send');
 
@@ -312,6 +315,7 @@ class ControllerTest extends TestCase
 
             return true;
         })->andReturnSelf();
+        $mock->shouldReceive('header')->andReturnSelf();
         $mock->shouldReceive('setStatusCode')->with(200)->andReturnSelf();
         $mock->shouldReceive('send');
 
